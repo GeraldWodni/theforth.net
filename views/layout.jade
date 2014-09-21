@@ -1,0 +1,45 @@
+doctype html
+include mixins
++script('/js/jquery.min.js')
+
+mixin menuItem( link, icon, text )
+    li
+        a(href="/admin/#{link}")
+            +glyph(icon)
+            span.hidden-xs
+                | 
+                = text
+
+html
+    head
+        title admin - kern.js
+        link(rel="stylesheet", type="text/css" href="/css/admin.css")
+        link(rel="stylesheet", type="text/css" href="/css/console.css")
+    body
+        div.navbar.navbar-fixed-top(role='navigation')
+            div.container
+                div.navbar-header
+                    a.navbar-brand(href="/")
+                        | kern.js
+                ul
+                    +menuItem("",           "info-sign",    __("Info"      ) )
+                    +menuItem("navigation", "list",         __("Navigation") )
+                    +menuItem("media",      "folder-open",  __("Media"     ) )
+                    +menuItem("user",       "user",         __("Users"     ) )
+                    +menuItem("locales",    "comment",      ""               )
+                    +menuItem("logout",     "log-out",      __("Logout"    ) )
+
+        div.container.main-content
+            block content
+
+        footer
+            div.container
+                div.row
+                    div.col-xs-4
+                        a(href='https://github.com/GeraldWodni/kern.js') kern.js
+                    div.col-xs-8.text-right
+                        | ©copyright 2014 by 
+                        a(href='http://wodni.at') Gerald Wodni
+
+        +script('/js/bootstrap.min.js')
+        +scripts

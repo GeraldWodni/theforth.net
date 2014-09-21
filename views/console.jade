@@ -1,0 +1,19 @@
+extends layout
+
+
+block content
+    h1 Console
+
+    +messages( messages )
+
+    div.row
+        div.col-sm-8
+                div#editor
+                        | \ theForth.net interactive prompt
+                        | \ loading...
+
+    +script('/js/ace.min.js')
+    +script('/js/ace/ext-language_tools.min.js')
+    +script('/js/console.js')
+
+

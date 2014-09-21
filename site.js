@@ -4,7 +4,7 @@
 module.exports = {
     setup: function( k ) {
         k.router.get("/c", function( req, res ) {
-            res.send( "theforth.net CONSOLE!" );
+            k.renderJade( req, res, "console" );
         });
     }
 };
