@@ -18,7 +18,7 @@ $(document).ready(function() {
     languageTools.addCompleter( forth200xCompleter );
 
     /* websocket */
-    var websocket = new WebSocket( "ws://localhost.theforth.net:8001/" );
+    var websocket = new WebSocket( "ws://localhost.theforth.net:3000/c" );
     console.log( "WS:", websocket );
     websocket.onopen =  function( evt ) { console.log( "open", evt ); websocket.send( "Hallo" ); };
     websocket.onclose= function( evt ) { console.log( "close", evt ); };
@@ -41,7 +41,7 @@ $(document).ready(function() {
                 if( lineContent.indexOf( "\\" ) === 0 )
                     return;
                 console.log( "LINE:", lineContent );
-                websocket.send( lineContent );
+                websocket.send( lineContent + "\n" );
             }
         }
     });
