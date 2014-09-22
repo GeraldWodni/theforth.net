@@ -17,6 +17,19 @@ $(document).ready(function() {
 
     languageTools.addCompleter( forth200xCompleter );
 
+    /* websocket */
+    var websocket = new WebSocket( "ws://localhost.theforth.net:8001/" );
+    console.log( "WS:", websocket );
+    websocket.onopen =  function( evt ) { console.log( "open", evt ); websocket.send( "Hallo" ); };
+    websocket.onclose= function( evt ) { console.log( "close", evt ); };
+    websocket.onerror= function( evt ) { console.log( "error", evt ); };
+    console.log( editor );
+    websocket.onmessage= function( evt ) { console.log( "message", evt ); 
+        //editor.insert( editor.getSession().getSelection(), "xxx" );
+        editor.getSession().insert( editor.getSession().getSelection().getCursor()
+        , "\\ " + evt.data + "\n" );
+    };
+
     /* console behaviour */
     editor.on("change", function(e) {
         /* newline! */
@@ -25,7 +38,10 @@ $(document).ready(function() {
             if( text === "\n" || text === "\r" || text === "\r\n" ) {
                 var lineNumber =  e.data.range.start.row;
                 var lineContent = editor.getSession().getDocument().getLine( lineNumber );
+                if( lineContent.indexOf( "\\" ) === 0 )
+                    return;
                 console.log( "LINE:", lineContent );
+                websocket.send( lineContent );
             }
         }
     });
