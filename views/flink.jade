@@ -1,0 +1,20 @@
+extends layout
+
+block content
+    +messages( messages )
+
+    div.row
+        div#editorPane.col-sm-8.tab-pane
+            div#editor.inner
+                | \ Flink
+                | \ loading...
+        div.col-sm-4.tab-pane#console
+
+    +script('/js/ace.min.js')
+    +script('/js/ace/ext-language_tools.min.js')
+    +script('/js/jqconsole.min.js')
+    +script('/js/reconnecting-websocket.js')
+    +script('/js/console.js')
+    +script('/js/flink.js')
+
+

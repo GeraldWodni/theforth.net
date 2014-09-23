@@ -10,7 +10,10 @@ module.exports = {
         var uplink = null;
 
         k.ws("/c", function( ws, req ) {
+            ws.state = "waiting";
+
             console.log( "Console Connected".yellow.bold );
+            ws.send( "header:Connected, waiting for Uplink...\n" );
 
             consoleSockets.push( ws );
             ws.on( "message", function( message ) {
@@ -36,6 +39,13 @@ module.exports = {
 
             ws.on( "message", function( message ) {
                 consoleSockets.forEach( function( consoleSocket ) {
+                    if( consoleSocket.state === "waiting" ) {
+                        consoleSocket.state = "open"
+                        consoleSocket.send("header:Uplink Connected\n" );
+                        consoleSocket.send( "enable" );
+                        consoleSocket.send( "start" );
+                    }
+
                     console.log( "Uplink:", message );
                     consoleSocket.send( message );
                 });
@@ -44,6 +54,10 @@ module.exports = {
 
         k.router.get("/c", function( req, res ) {
             k.renderJade( req, res, "console" );
+        });
+
+        k.router.get("/flink", function( req, res ) {
+            k.renderJade( req, res, "flink" );
         });
     }
 };
