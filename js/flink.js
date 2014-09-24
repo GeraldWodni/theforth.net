@@ -4,20 +4,45 @@ $(function(){
     var editor = ace.edit("editor");
     editor.setOptions( { enableBasicAutocompletion: true } );
 
+    var screenMinSm = 768;
+
+    function viewport() {
+        var e = window, a = 'inner';
+        if (!('innerWidth' in window )) {
+            a = 'client';
+            e = document.documentElement || document.body;
+        }
+        return { width : e[ a+'Width' ] , height : e[ a+'Height' ] };
+    }
+
     function resize($element) {
         var width = $element.outerWidth();
         var parentWidth  = $element.parent().width();
         var parentHeight = $element.parents(".main-content").height();
         var remainingWidth = parentWidth - width - 1;
 
-        $element.css("height", parentHeight + "px" );
-
-        $.each( $element.siblings(), function( index, sibling ) {
-            $(sibling).css( {
-                width: remainingWidth + "px",
-                height: parentHeight + "px"
+        /* check  */
+        var windowViewport = viewport();
+        var smallHeight = ( windowViewport.height - 100 ) + "px";
+        if( windowViewport.width < screenMinSm ) {
+            $element.css("height", smallHeight);
+            $.each( $element.siblings(), function( index, sibling ) {
+                $(sibling).css( {
+                    width: "",
+                    height: smallHeight
+                });
             });
-        });
+        }
+        else {
+            $element.css("height", parentHeight + "px" );
+
+            $.each( $element.siblings(), function( index, sibling ) {
+                $(sibling).css( {
+                    width: remainingWidth + "px",
+                    height: parentHeight + "px"
+                });
+            });
+        }
 
         editor.resize();
     };

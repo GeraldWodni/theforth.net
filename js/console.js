@@ -1,11 +1,11 @@
 $(document).ready(function() {
 
     /* configuration */
-    var websocketUrl = "ws://flink.theforth.net:8000/c";
+    var websocketUrl = "ws://" + $('#console').attr('data-websocket-host' ) + ":8000/c";
 
     /* setup console */
     var jqconsole = $('#console').jqconsole("", '> ');
-    jqconsole.Write( "Connecting to theforth.net...\n", "header" );
+    jqconsole.Write( "Connecting to " + websocketUrl + "...\n", "header" );
     jqconsole.Disable();
 
     /* websocket */
@@ -45,6 +45,8 @@ $(document).ready(function() {
 
         if( command === "header" || command === "output" || command === "error" )
             jqconsole.Write( data, command );
+	else if ( command === "input" )
+            jqconsole.Write( "<" + data, command );
         else if( command === "enable" )
             jqconsole.Enable();
         else if( command === "disable" )

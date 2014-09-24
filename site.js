@@ -9,11 +9,21 @@ module.exports = {
         var consoleSockets = [];
         var uplink = null;
 
+        function enableConsoleSocket( consoleSocket ) {
+            consoleSocket.state = "open"
+            consoleSocket.send("header:Uplink Connected\n" );
+            consoleSocket.send( "enable" );
+            consoleSocket.send( "start" );
+        }
+
         k.ws("/c", function( ws, req ) {
             ws.state = "waiting";
 
             console.log( "Console Connected".yellow.bold );
             ws.send( "header:Connected, waiting for Uplink...\n" );
+
+            if( uplink )
+                enableConsoleSocket( ws );
 
             consoleSockets.push( ws );
             ws.on( "message", function( message ) {
@@ -21,14 +31,25 @@ module.exports = {
 
                 if( uplink )
                     uplink.send( message );
+
+                consoleSockets.forEach( function( consoleSocket ) {
+                    if( consoleSocket.state === "open" && consoleSocket != ws )
+                        consoleSocket.send( message );
+                });
+            });
+
+            ws.on( "error", function( error ) {
+                console.log( "Consolesocket error".bold.red, error );
             });
 
             ws.on( "close", function() {
-                console.log( "Closing" );
+                console.log( "Consolesocket Closing" );
 
                 var index = consoleSockets.indexOf( ws );
-                if( index >= 0 )
-                    consoleSockets.slice( index, 1 );
+                if( index >= 0 ) {
+                    consoleSockets.splice( index, 1 );
+                    console.log( "Consolesocket Closed".bold.red );
+                }
             });
         });
 
@@ -39,12 +60,8 @@ module.exports = {
 
             ws.on( "message", function( message ) {
                 consoleSockets.forEach( function( consoleSocket ) {
-                    if( consoleSocket.state === "waiting" ) {
-                        consoleSocket.state = "open"
-                        consoleSocket.send("header:Uplink Connected\n" );
-                        consoleSocket.send( "enable" );
-                        consoleSocket.send( "start" );
-                    }
+                    if( consoleSocket.state === "waiting" )
+                        enableConsoleSocket( consoleSocket );
 
                     console.log( "Uplink:", message );
                     consoleSocket.send( message );
@@ -57,7 +74,10 @@ module.exports = {
         });
 
         k.router.get("/", function( req, res ) {
-            k.renderJade( req, res, "flink" );
+            var websocketHost = "flink.theforth.net";
+            if( k.hostname != "4data" )
+                websocketHost = "localhost.theforth.net";
+            k.renderJade( req, res, "flink", { websocketHost: websocketHost } );
         });
     }
 };

@@ -61,10 +61,12 @@ h2 .glyphicon {
 }
 
 footer {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    @media @from-sm {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+    }
     height: @footer-height;
 
     padding-top: 5px;
@@ -72,11 +74,13 @@ footer {
 }
 
 .main-content {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 50px;
-    bottom: @footer-height;
+    @media @from-sm {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 50px;
+        bottom: @footer-height;
+    }
 
     background-color: @console-background;
 }
@@ -91,9 +95,9 @@ footer {
 
     pre {
         background-color: @console-background;
-    font-family: Monaco, Menlo, 'Ubuntu Mono', Consolas, source-code-pro, monospace;
-    font-size: 12px;
-    line-height: normal;
+        font-family: Monaco, Menlo, 'Ubuntu Mono', Consolas, source-code-pro, monospace;
+        font-size: 12px;
+        line-height: normal;
     }
 
     .header {
@@ -103,6 +107,10 @@ footer {
 
     .output {
         color: @console-output;
+    }
+
+    .input {
+        color: @console-input;
     }
 
     .error {
