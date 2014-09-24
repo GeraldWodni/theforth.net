@@ -1,7 +1,7 @@
 $(document).ready(function() {
 
     /* configuration */
-    var websocketUrl = "ws://localhost.theforth.net:3000/c";
+    var websocketUrl = "ws://flink.theforth.net:8000/c";
 
     /* setup console */
     var jqconsole = $('#console').jqconsole("", '> ');

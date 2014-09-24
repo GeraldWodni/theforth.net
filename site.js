@@ -56,7 +56,7 @@ module.exports = {
             k.renderJade( req, res, "console" );
         });
 
-        k.router.get("/flink", function( req, res ) {
+        k.router.get("/", function( req, res ) {
             k.renderJade( req, res, "flink" );
         });
     }
