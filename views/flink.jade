@@ -4,11 +4,11 @@ block content
     +messages( messages )
 
     div.row
-        div#editorPane.col-sm-8.tab-pane
+        div#editorPane.col-sm-4.tab-pane
             div#editor.inner
                 | \ Flink
                 | \ loading...
-        div(data-websocket-host="#{websocketHost}").col-sm-4.tab-pane#console
+        div(data-websocket-host="#{websocketHost}").col-sm-8.tab-pane#console
 
     +script('/js/ace.min.js')
     +script('/js/ace/ext-language_tools.min.js')

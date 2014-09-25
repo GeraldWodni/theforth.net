@@ -8,7 +8,8 @@
 @console-background: #DEDEDE;
 @console-header: #005500;
 @console-input: #005555;
-@console-output: #550055;
+@console-remote-input: #0000AA;
+@console-output: #880088;
 @console-error: #dd0000;
 
 @only-xs:  ~"(max-width: @{screen-xs-max})";
@@ -111,6 +112,10 @@ footer {
 
     .input {
         color: @console-input;
+    }
+
+    .remote-input {
+	color: @console-remote-input;
     }
 
     .error {

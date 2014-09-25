@@ -46,7 +46,7 @@ $(document).ready(function() {
         if( command === "header" || command === "output" || command === "error" )
             jqconsole.Write( data, command );
 	else if ( command === "input" )
-            jqconsole.Write( "<" + data, command );
+            jqconsole.Write( "<" + data, "remote-input" );
         else if( command === "enable" )
             jqconsole.Enable();
         else if( command === "disable" )
