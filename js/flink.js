@@ -82,4 +82,27 @@ $(function(){
     setTimeout( function() {
         resize( $('#editorPane' ) );
     }, 200);
+
+
+    $("#menu-run").click( function() {
+        var editSession = editor.getSession();
+
+        if( editSession.getLength() == 0 )
+            return;
+
+        var lineNumber = 0;
+
+        function sendNextLine( err ) {
+            if( err )
+                return;
+
+            if( lineNumber < editSession.getLength() ) {
+                flinkConsole.send( editSession.getLine( lineNumber ), sendNextLine );
+            }
+
+            lineNumber++;
+        }
+
+        sendNextLine( null );
+    });
 });

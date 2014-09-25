@@ -1,4 +1,8 @@
+var flinkConsole = {};
+
 $(document).ready(function() {
+
+    var nextOkCallback = null;
 
     /* configuration */
     var websocketUrl = "ws://" + $('#console').attr('data-websocket-host' ) + ":8000/c";
@@ -11,8 +15,18 @@ $(document).ready(function() {
     /* websocket */
     var websocket = new ReconnectingWebSocket( websocketUrl );
 
-    websocket.onopen =  function( evt ) {
-    };
+    flinkConsole = {
+        write: function( data, style ){
+            jqconsole.Write( data, style );
+        },
+        send: function( data, callback ) {
+            jqconsole.Write( data + "\n", "input" );
+            nextOkCallback = callback;
+            websocket.send( "input:" + data + "\n" );
+        }
+    }
+
+    websocket.onopen =  function( evt ) {};
     websocket.onclose= function( evt ) {
         jqconsole.Write( "Disconnected from theforth.net\n", "header" );
         jqconsole.Disable();
@@ -43,8 +57,22 @@ $(document).ready(function() {
             data = evt.data.substring( border + 1 );
         }
 
-        if( command === "header" || command === "output" || command === "error" )
+        if( command === "header" || command === "output" || command === "error" ) {
             jqconsole.Write( data, command );
+
+            if( typeof nextOkCallback === "function" ) {
+                var nextOkCb = nextOkCallback;
+
+                if( command === "error" ) {
+                    nextOkCallback = null;
+                    nextOkCb( data );
+                }
+                else if( command === "output" && data.indexOf( "ok" ) >= 0 ) {
+                    nextOkCallback = null;
+                    nextOkCb( null, data );
+                }
+            }
+        }
 	else if ( command === "input" )
             jqconsole.Write( "<" + data, "remote-input" );
         else if( command === "enable" )

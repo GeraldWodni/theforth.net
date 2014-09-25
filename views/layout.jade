@@ -5,7 +5,7 @@ include mixins
 
 mixin menuItem( link, icon, text )
     li
-        a(href="/admin/#{link}")
+        a(id="menu-#{link}",href="#")
             +glyph(icon)
             span.hidden-xs
                 | 
@@ -25,12 +25,12 @@ html
                     a.navbar-brand(href="/",title="Forth-Link")
                         | Flink
                 ul
-                    +menuItem("",           "info-sign",    __("Info"      ) )
-                    +menuItem("navigation", "list",         __("Navigation") )
-                    +menuItem("media",      "folder-open",  __("Media"     ) )
-                    +menuItem("user",       "user",         __("Users"     ) )
-                    +menuItem("locales",    "comment",      ""               )
-                    +menuItem("logout",     "log-out",      __("Logout"    ) )
+                    +menuItem("run",        "play",             __("Run"    ) )
+                    +menuItem("load",       "cloud-download",   __("Load"   ) )
+                    +menuItem("save",       "cloud-upload",     __("Save"   ) )
+                    +menuItem("user",       "user",             __("Users"  ) )
+                    +menuItem("info",       "info-sign",        __("Info"   ) )
+                    +menuItem("logout",     "log-out",          __("Logout" ) )
 
         div.container-fluid.main-content
             block content
