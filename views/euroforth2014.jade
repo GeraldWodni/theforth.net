@@ -1,0 +1,66 @@
+doctype html
+include mixins
++script('/js/jquery.min.js')
++script('/js/jquery-ui.min.js')
+
+html
+    head
+        title EuroForth 2014
+        meta(name="viewport",content="width=1014")
+        +style('http://fonts.googleapis.com/css?family=Open+Sans:regular,semibold,italic,italicsemibold|PT+Sans:400,700,400italic,700italic|PT+Serif:400,700,400italic,700italic')
+        +style('/css/euroforth2014.css')
+        +styles
+    body
+        div.container-fluid.main-content
+            div#impress
+                div.title.step.slide(data-x="-1000",data-y="0")
+                    h1 Forth - the next generation
+                    h2 Gerald Wodni - EuroForth 2014
+
+                div.step.slide(data-x="0",data-y="0")
+                    h1 theForth.net
+                    ul
+                        li Repository for projects
+                        ul
+                            li Optional git
+                            li Meta-Repository
+                            li Dependencies, Target-System, etc.
+                        li Something is still missing ...
+
+
+                div.step.slide(data-x="1000",data-y="0")
+                    h1 Javascript (Node.js)
+                    ul
+                        li Fastest growing community
+                        li Lots of projects (small-big)
+                        li npm - node packet manager
+                        li Allows flat or steep learning curve
+
+                div.step.slide(data-x="2000",data-y="0")
+                    h1 Forth attractive for beginners?
+                    ul
+                        li Repository is not enough
+                        li Exploit the power of
+                        ul
+                            li Forth
+                            li Web
+                            li Browser
+
+                div.title.step.slide(data-x="3000",data-y="0")
+                    h1 Demo
+
+                div.step.slide(data-x="4000",data-y="0")
+                    h1 Future Directions
+                    ul
+                        li Serve from Target (Terminal &gt; GUI)
+                        li M2M Communication
+                        li Machine's GUI: HTML5
+                        li Online by the start of 2015
+
+                div.title.step.slide(data-x="5000",data-y="0")
+                    h1 Thank You
+                    h2 theForth.net
+
+        +script('/js/impress.js')
+        +script('/js/euroforth2014.js')
+        +scripts

@@ -69,6 +69,10 @@ module.exports = {
             });
         });
 
+        k.router.get("/euroforth2014", function( req, res ) {
+            k.renderJade( req, res, "euroforth2014" );
+        });
+
         k.router.get("/c", function( req, res ) {
             k.renderJade( req, res, "console" );
         });
