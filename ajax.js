@@ -42,15 +42,86 @@ module.exports = {
             return path.join( k.kernOpts.websitesRoot, k.modules.hierarchy.website( k.kernOpts.websitesRoot, req.kern.website ), "files", req.session.loggedInUsername );
         };
 
+// http://stackoverflow.com/questions/5827612/node-js-fs-readdir-recursive-directory-search
+//var walk = function(dir, done) {
+//  var results = [];
+//  fs.readdir(dir, function(err, list) {
+//    if (err) return done(err);
+//    var pending = list.length;
+//    if (!pending) return done(null, results);
+//    list.forEach(function(file) {
+//      file = dir + '/' + file;
+//      fs.stat(file, function(err, stat) {
+//        if (stat && stat.isDirectory()) {
+//          walk(file, function(err, res) {
+//            results = results.concat(res);
+//            if (!--pending) done(null, results);
+//          });
+//        } else {
+//          results.push(file);
+//          if (!--pending) done(null, results);
+//        }
+//      });
+//    });
+//  });
+//};
+        function readDirs( res, prefix, dir, done ) {
+            var results = [];
+
+            fs.readdir( dir, function( err, items ) {
+                if( err )
+                    return ajaxError( res, err );
+
+                var pending = items.length;
+                var results = [];
+
+                if( !pending )
+                    return done( null, results );
+
+                items.forEach( function( item ) {
+                    var p = path.join( dir, item );
+                    fs.stat( p, function( err, stat ) {
+                        if( err )
+                            return ajaxError( res, err );
+
+                        if( stat.isDirectory() ) {
+                            var subPrefix = path.join( prefix, item );
+                            readDirs( res, subPrefix, p, function( err, subItems ) {
+                                results.push( {
+                                    name: item, path: prefix, isDirectory: true, children: subItems
+                                });
+                                if( !--pending )
+                                    done( null, results );
+                            });
+                        }
+                        else {
+                            results.push( { name: item, path: path.join( prefix, item ) } );
+                            if( !--pending )
+                                done( null, results );
+                        }
+                    });
+
+                });
+            });
+        };
+
         k.router.get("/ls", function( req, res ) {
             var folder = getUserFolder( req );
+
+            readDirs( res, "", folder, function( err, items ) {
+                console.log( "READDIRS".magenta.bold, items );
+                //res.json({ status: "DONE!"} );
+                res.json( items );
+            });
+
+            return;
 
             fs.readdir( folder, function( err, items ) {
                 if( err )
                     return ajaxError( res, err );
 
                 async.map( items, function( item, d ) {
-                    console.log( folder, item );
+                    //console.log( folder, item );
                     fs.stat( path.join( folder, item), d );
                 },
                 function( err, stats )  {

@@ -113,18 +113,34 @@ $(function(){
         $.get( "/ajax/ls", function( data ) {
             console.log( data );
             var $ul = $("#modal-load ul");
+            var code = "";
             $ul.empty();
 
-            data.directories.forEach( function( item ) {
-                $ul.append( '<li><i class="glyphicon glyphicon-folder-close"/> ' + item.name + "</li>" );
-            });
+            function listify( items ) {
+                items.forEach( function( item ) {
+                    code += '<li class="' + ( item.isDirectory ? "directory" : "file" ) + '" ';
+                    code += 'data-path="' + item.path + '" >';
+                    code += '<i class="glyphicon glyphicon-' + ( item.isDirectory ? "folder-close" : "file" ) + '"/> ';
+                    code += item.name;
 
-            data.files.forEach( function( item ) {
-                $ul.append('<li><i class="glyphicon glyphicon-file"/> <span class="filename">' + item.name + "</span></li>" );
-            });
+                    if( item.isDirectory ) {
+                        code += '<ul>';
+                        listify( item.children );
+                        code += '</ul>';
+                    }
+
+                    code += '</li>\n';
+                });
+            }
+
+            listify( data ); 
+
+            console.log( code );
+
+            $ul.html( code );
 
             $ul.find("li").click( function() {
-                $.get( "/ajax/load/" + $(this).find(".filename").text(), function( data ) {
+                $.get( "/ajax/load/" + encodeURIComponent( $(this).attr("data-path") ), function( data ) {
                     editor.getSession().getDocument().setValue( data.content );
                     $("#modal-load").modal("hide");
                 });
