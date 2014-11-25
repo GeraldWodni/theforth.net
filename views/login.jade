@@ -1,0 +1,22 @@
+extends layout
+
+block content
+    div.col-sm-8.col-sm-offset-2.col-md-6.col-md-offset-3
+        h1= __("Authentification required")
+
+        if error
+            div.alert.alert-danger
+                strong
+                    = error
+
+        form(method='post',role='form')
+            div.form-group
+                label(for='username')= __("Username")
+                input.form-control(id='username',type='text',name='username',placeholder='Name',autofocus="autofocus")
+            div.form-group
+                label(for='password')= __("Password")
+                input.form-control(id='password',type='password',name='password',placeholder='Passwort')
+            button.btn.btn-default(type='submit',name='login',value='yes') Login
+
+    +script('/js/jquery.min.js')
+    +script('/js/bootstrap.min.js')

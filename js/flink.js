@@ -84,7 +84,8 @@ $(function(){
     }, 200);
 
 
-    $("#menu-run").click( function() {
+    $("#menu-run").click( function(e) {
+        e.preventDefault();
         var editSession = editor.getSession();
 
         if( editSession.getLength() == 0 )
@@ -104,5 +105,37 @@ $(function(){
         }
 
         sendNextLine( null );
+    });
+
+    $("#menu-load").click( function(e) {
+        e.preventDefault();
+
+        $.get( "/ajax/ls", function( data ) {
+            console.log( data );
+            var $ul = $("#modal-load ul");
+            $ul.empty();
+
+            data.directories.forEach( function( item ) {
+                $ul.append( '<li><i class="glyphicon glyphicon-folder-close"/> ' + item.name + "</li>" );
+            });
+
+            data.files.forEach( function( item ) {
+                $ul.append('<li><i class="glyphicon glyphicon-file"/> <span class="filename">' + item.name + "</span></li>" );
+            });
+
+            $ul.find("li").click( function() {
+                $.get( "/ajax/load/" + $(this).find(".filename").text(), function( data ) {
+                    editor.getSession().getDocument().setValue( data.content );
+                    $("#modal-load").modal("hide");
+                });
+            });
+        });
+
+        $("#modal-load").modal("show");
+    });
+
+    $("#menu-info").click( function(e) {
+        e.preventDefault();
+        $("#modal-info").modal("show");
     });
 });

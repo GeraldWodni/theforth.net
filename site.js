@@ -69,6 +69,16 @@ module.exports = {
             });
         });
 
+        k.router.get("/logout", function( req, res ) {
+            req.sessionInterface.destroy( req, res, function() {
+                k.renderJade( req, res, "logout" );
+            });
+        });
+
+        k.router.use( k.rdb.users.loginRequired( "login" ) );
+
+        k.router.use( "/ajax", k.siteModule( "theforth.net", "ajax.js" ).router );
+
         k.router.get("/euroforth2014", function( req, res ) {
             k.renderJade( req, res, "euroforth2014" );
         });

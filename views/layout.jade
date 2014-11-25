@@ -5,7 +5,7 @@ include mixins
 
 mixin menuItem( link, icon, text )
     li
-        a(id="menu-#{link}",href="#")
+        a(id="menu-#{link}",href="#{link}")
             +glyph(icon)
             span.hidden-xs
                 | 

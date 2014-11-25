@@ -11,6 +11,14 @@ block content
                 | .( hallo editor ;)
         div(data-websocket-host="#{websocketHost}").col-sm-8.tab-pane#console
 
+    +modal("modal-load", __("Load"), __("Load") )
+        ul.content
+
+    +modal("modal-info", __("Info"))
+        h4 Flink
+        p Distributed Forth Developement Environment
+        p ©copyright 2014 by Gerald Wodni
+
     +script('/js/ace.min.js')
     +script('/js/ace/ext-language_tools.min.js')
     +script('/js/jqconsole.min.js')
