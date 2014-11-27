@@ -14,6 +14,34 @@ block content
     +modal("modal-load", __("Load"), __("Load") )
         ul.content
 
+    mixin pinButton( name, pin, offset )
+        div(class="col-sm-4 text-center col-sm-offset-" + offset)
+            b= name
+            br
+            div.btn-group
+                a.btn.btn-primary(data-command="#{pin} setpin") On
+                a.btn.btn-default(data-command="#{pin} clrpin") Off
+
+    +modal("modal-gui", __("GUI"))
+        div.row
+            div.col-sm-4.text-center
+                b Ledactive
+                br
+                div.btn-group
+                    a.btn.btn-primary(data-command="ledactive on") On
+                    a.btn.btn-default(data-command="ledactive off") Off
+        div.row
+            +pinButton( "Up", "ldu", 4 )
+        div.row
+            +pinButton( "Left", "ldl", 0 )
+            +pinButton( "Right", "ldr", 4 )
+        div.row
+            +pinButton( "Down", "ldd", 4 )
+        div.row
+            div.col-sm-12
+                b#slider Val?
+                
+
     +modal("modal-info", __("Info"))
         h4 Flink
         p Distributed Forth Developement Environment

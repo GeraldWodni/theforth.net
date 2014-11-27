@@ -16,11 +16,28 @@ module.exports = {
             consoleSocket.send( "start" );
         }
 
+        k.ws("/uplink", function( ws, req ) {
+            console.log( "Uplink Connected".yellow.bold );
+
+            uplink = ws;
+
+            ws.on( "message", function( message ) {
+            	console.log( "Got Message:", message );
+                consoleSockets.forEach( function( consoleSocket ) {
+                    if( consoleSocket.state === "waiting" )
+                        enableConsoleSocket( consoleSocket );
+
+                    console.log( "Uplink:", message );
+                    consoleSocket.send( message );
+                });
+            });
+        });
+
         k.ws("/c", function( ws, req ) {
             ws.state = "waiting";
 
             console.log( "Console Connected".yellow.bold );
-            ws.send( "header:Connected, waiting for Uplink...\n" );
+            ws.send( "header:Connected, waiting for Uplink now...\n" );
 
             if( uplink )
                 enableConsoleSocket( ws );
@@ -33,7 +50,7 @@ module.exports = {
                     uplink.send( message );
 
                 consoleSockets.forEach( function( consoleSocket ) {
-                    if( consoleSocket.state === "open" && consoleSocket != ws )
+                    //if( consoleSocket.state === "open" && consoleSocket != ws )
                         consoleSocket.send( message );
                 });
             });
@@ -53,21 +70,6 @@ module.exports = {
             });
         });
 
-        k.ws("/uplink", function( ws, req ) {
-            console.log( "Uplink Connected".yellow.bold );
-
-            uplink = ws;
-
-            ws.on( "message", function( message ) {
-                consoleSockets.forEach( function( consoleSocket ) {
-                    if( consoleSocket.state === "waiting" )
-                        enableConsoleSocket( consoleSocket );
-
-                    console.log( "Uplink:", message );
-                    consoleSocket.send( message );
-                });
-            });
-        });
 
         k.router.get("/logout", function( req, res ) {
             req.sessionInterface.destroy( req, res, function() {
@@ -75,7 +77,7 @@ module.exports = {
             });
         });
 
-        k.router.use( k.rdb.users.loginRequired( "login" ) );
+        //k.router.use( k.rdb.users.loginRequired( "login" ) );
 
         k.router.use( "/ajax", k.siteModule( "theforth.net", "ajax.js" ).router );
 

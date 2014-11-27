@@ -5,7 +5,8 @@ $(document).ready(function() {
     var nextOkCallback = null;
 
     /* configuration */
-    var websocketUrl = "ws://" + $('#console').attr('data-websocket-host' ) + ":8000/c";
+    //var websocketUrl = "ws://" + $('#console').attr('data-websocket-host' ) + ":8000/c";
+    var websocketUrl = "ws://" + window.location.hostname + ":8000/c";
 
     /* setup console */
     var jqconsole = $('#console').jqconsole("", '> ');
@@ -47,7 +48,7 @@ $(document).ready(function() {
         var border = evt.data.indexOf( ":" );
         var command;
         var data;
-        
+
         if( border === -1 ) {
             command = evt.data;
             data = "";
@@ -59,6 +60,26 @@ $(document).ready(function() {
 
         if( command === "header" || command === "output" || command === "error" ) {
             jqconsole.Write( data, command );
+
+            if( command == "output" ) {
+                /* GUI demo */
+                var lines = data.match(/[^\r\n]+/g);
+                if( lines && lines.length )
+                    lines.forEach( function( line ) {
+                        console.log( "LINE:", line );
+                        if( line.indexOf( "!" ) >= 0 ) {
+                            var parts = line.match( /\!([a-zA-Z0-9]+):([^|]+)\|([^|]+)\|(.+)/ );
+                            console.log( parts );
+                            var pCmd = parts[1];
+                            var pTarget = parts[2];
+                            var pAttribute = parts[3];
+                            var pValue = parts[4];
+
+                            if( pCmd == "set" )
+                                $(pTarget).text( pValue );
+                        }
+                    });
+            }
 
             if( typeof nextOkCallback === "function" ) {
                 var nextOkCb = nextOkCallback;

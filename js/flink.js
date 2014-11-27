@@ -124,7 +124,7 @@ $(function(){
                     code += item.name;
 
                     if( item.isDirectory ) {
-                        code += '<ul>';
+                        code += '<ul style="display:none">';
                         listify( item.children );
                         code += '</ul>';
                     }
@@ -140,14 +140,33 @@ $(function(){
             $ul.html( code );
 
             $ul.find("li").click( function() {
-                $.get( "/ajax/load/" + encodeURIComponent( $(this).attr("data-path") ), function( data ) {
-                    editor.getSession().getDocument().setValue( data.content );
-                    $("#modal-load").modal("hide");
-                });
+                var $this = $(this);
+                if( $this.hasClass( "directory" ) ) {
+                    var $icon = $this.find("i.glyphicon").first();
+
+                    $icon.toggleClass( "glyphicon-folder-open" ).toggleClass( "glyphicon-folder-close" );
+                    $this.find("ul").toggle();
+                }
+                else {
+                    $.get( "/ajax/load/" + encodeURIComponent( $(this).attr("data-path") ), function( data ) {
+                        editor.getSession().getDocument().setValue( data.content );
+                        $("#modal-load").modal("hide");
+                    });
+                }
             });
         });
 
         $("#modal-load").modal("show");
+    });
+
+    $("#menu-gui").click(function(e) {
+        e.preventDefault();
+
+        $("#modal-gui").find("[data-command]").unbind().click( function() {
+            flinkConsole.send( $(this).attr("data-command" ) );
+        });
+
+        $("#modal-gui").modal("show");
     });
 
     $("#menu-info").click( function(e) {

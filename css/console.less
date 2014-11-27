@@ -199,11 +199,15 @@ footer {
         list-style: none;
     }
 
-    li.file {
+    li {
         cursor: pointer;
 
         &:hover {
             background: #DDD;
         }
+        
+	&.directory:hover {
+            background: #CDD;
+	}
     }
 }
