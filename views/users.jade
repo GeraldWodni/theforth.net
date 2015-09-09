@@ -1,0 +1,24 @@
+//- (c)2015 by Gerald Wodni
+
+extends layout
+
+block content
+    .container
+        .row
+            .col-md-6
+                h1
+                    | Users
+                h4
+                    | Say hello to your fellow Forthers
+
+    .container
+        .row
+            each user in users
+                .col-sm-6.col-md-4.col-lg-3
+                    a.user(href="/~#{user.link}")
+                        +gravatar( user.emailMd5, user.name, 48 ).pull-left
+                        .name= user.name
+                        //+elink( "http://www.forth.org", "Forth Interest Group" )
+                        //p
+                        //    | Located in Silicon Valley, the first big Forth community 
+

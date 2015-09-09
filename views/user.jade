@@ -1,0 +1,22 @@
+//- (c)2015 by Gerald Wodni
+
+extends layout
+
+block content
+    .container
+        .row
+            .col-md-8
+                h2
+                    | Packages by 
+                    = user.name
+                uls.fa-ul
+                    each packet in packages
+                        li
+                            +fa("li fa fa-cube")
+                            a(href="/package/#{packet.name}")
+                                h3= packet.name
+            .col-md-4
+                h1.text-center
+                    +gravatar( user.emailMd5, user.name, 496 ).img-responsive
+                    = user.name
+

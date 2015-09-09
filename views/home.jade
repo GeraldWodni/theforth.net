@@ -1,0 +1,104 @@
+//- (c)2015 by Gerald Wodni
+
+extends layout
+
+mixin system( name, link )
+    .col-sm-6.col-md-4.system
+        h3
+            +elink( link, name )
+        p
+            block
+
+mixin gnu
+    .badge.gnu(title="GNU/Linux") GNU
+
+mixin win
+    .badge.win(title="Windows") WIN
+
+mixin osx
+    .badge.osx(title="Mac OS X") OSX
+
+mixin android
+    .badge.android(title="Android") Droid
+
+mixin embedded
+    .badge.embedded(title="Deeply embedded systems") µC
+
+block content
+    .container
+        .row
+            .col-md-6
+                h1
+                    img(src="/images/forth-phi.png",style="width:64px;height:auto")
+                    | Forth
+                h4
+                    | An awesome stack based programming language, which is able to extend itself during runtime.
+            .col-md-6
+                code
+                    | \ a comment followed by the shortest quine
+                    br
+                    b source type
+                    br
+                    br
+                    | \ another shorty, hello world looks like that
+                    br
+                    b ." hello world"
+                    br
+                    br
+                    | \ tell me, what else can we do? ask the system itself!
+                    br
+                    b words
+                    |  \ this will yield all defined words
+
+    .container.standard
+        h1 Standard
+        p
+            | This is the official website of the Forth 2012 Standard, and Forth200x committee.
+        p
+            | You can browse and discuss the <a href="/words">standard words</a>,
+            | or dig deeper into the standard by browsing our <a href="http://www.forth200x.org">workgroup website</a>.
+
+    .container.systems
+        h1 Systems
+        p Forth is a highly interactive language with interactive compilation, that's why we call the compilers Forth-Systems. The parser is always visible to the programmer! Here are some modern Forth Systems to get you started.
+
+        .row
+            +system( "Gforth", "https://www.complang.tuwien.ac.at/forth/gforth/Docs-html/" )
+                | GNU Forth, completely free software.
+                +embedded
+                +gnu
+                +android
+                +win
+                +osx
+
+            +system( "VFX", "http://www.mpeforth.com/vfxwin.htm" )
+                | The fastest code generator
+                +embedded
+                +gnu
+                +win
+                +osx
+
+            +system( "SwiftForth", "http://www.forth.com/swiftforth/index.html" )
+                | Rock solid, kept simple and went to space
+                +embedded
+                +gnu
+                +win
+                +osx
+        div.remark
+            p
+                | Please 
+                +elink("/contact", "let us know")
+                |  if a modern, actively developed system is missing in this list.
+
+    .container.communities
+        h1 Communities
+        .row
+            .col-sm-6.col-md-4
+                +elink( "http://forth-ev.de", "Forth e.V." )
+                p
+                    | Germany's leading Forth community, with members from Austria, Netherlands and USA.
+            .col-sm-6.col-md-4
+                +elink( "http://www.forth.org", "Forth Interest Group" )
+                p
+                    | Located in Silicon Valley, the first big Forth community 
+

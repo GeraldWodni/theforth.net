@@ -1,0 +1,10 @@
+{
+    ".*": {
+        "mysql": {
+            "host"     : "<HOST>",
+            "user"     : "<USER>",
+            "database" : "<DATABASE>",
+            "password" : "<PASSWORD>"
+        }
+    }
+}

@@ -30,3 +30,6 @@ bower_components
 
 # no less-based css
 /css/*.css
+
+# hide real config parameters
+config.json

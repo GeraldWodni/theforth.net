@@ -1,0 +1,156 @@
+@import "bootstrap";
+@import "materials";
+
+.material("Lime");
+
+@navbar-height: 50px;
+@footer-height: 30px;
+
+@link-color: @mat-700;
+@link-hover-color: @mat-900;
+
+.mat( "Grey"; 800 );
+@body-color: @black;
+@body-background: @white;
+@navbar-color: @mat-A400;
+@navbar-background: @mat;
+@navbar-hover: @navbar-background;
+@navbar-hover-background: @navbar-color;
+@footer-color: @navbar-color;
+@footer-background: @navbar-background;
+
+@only-xs:  ~"(max-width: @{screen-xs-max})";
+@from-sm:  ~"(min-width: @{screen-sm-min})";
+
+html, body {
+    height: 100%;
+}
+
+body {
+    color: @body-color;
+    background-color: @body-background;
+}
+
+body > .wrapper {
+    height: auto;
+    min-height: 100%;
+    padding-top: @navbar-height;
+    padding-bottom: @footer-height;
+}
+
+a {
+    color: @link-color;
+    
+    &:hover {
+        text-decoration: none;
+        color: @link-hover-color;
+    }
+}
+
+.navbar {
+    //background: url(/images/orion-nebula-space-galaxy-green.jpg);
+    background-color: @navbar-background;
+    border-bottom: 1px solid #CCC;
+
+    div.navbar-header {
+        float: left;
+    }
+
+    a, a.navbar-brand {
+        color: @navbar-color;
+        padding: 15px;
+        display: inline-block;
+        font-size: 18px;
+        line-height: 18px;
+        height: 50px;
+
+        text-decoration: none;
+        // text-shadow: #000 0 0 1px;
+
+        &:hover {
+            color: @navbar-hover;
+            background-color: @navbar-hover-background;
+        }
+    }
+
+    a.navbar-brand {
+        font-weight: bold;
+    }
+
+    ul {
+        margin: 0;
+        li {
+            display: inline;
+        }
+    }
+}
+
+footer {
+    line-height: @footer-height - 1;
+    height: @footer-height;
+    vertical-align: middle;
+    margin-top: -@footer-height;
+
+    color: @footer-color;
+    background-color: @footer-background;
+
+    border-top: 1px solid #CCC;
+}
+
+h2 .glyphicon {
+    font-size: 80%;
+}
+
+#logout {
+}
+
+.main-content {
+    margin-top: 50px;
+}
+
+.modal ul.content {
+    padding-left: 0;
+    list-style: none;
+
+    ul {
+        list-style: none;
+    }
+
+    li {
+        cursor: pointer;
+
+        &:hover {
+            background: #DDD;
+        }
+        
+        &.directory:hover {
+            background: #CDD;
+        }
+    }
+}
+
+.user {
+    @avatarSize: 48px;
+    display: block;
+
+    .mat( "Grey"; 300 );
+
+    color: @black;
+    background-color: @mat-50;
+    border-radius: @border-radius-small;
+    border: 1px solid @mat;
+
+    margin-bottom: 15px;
+    .clearfix();
+
+    .name {
+        margin-left: @avatarSize + 5px;
+        line-height: @avatarSize;
+    }
+
+    &:hover {
+        color: @black;
+        text-decoration: none;
+        background: @mat-300;
+    }
+}

@@ -5,36 +5,43 @@ include mixins
 
 mixin menuItem( link, icon, text )
     li
-        a(id="menu-#{link}",href="#{link}")
-            +glyph(icon)
+        a(id="menu-#{link}",href="#{link}",title="#{text}")
+            +fa(icon)
             span.hidden-xs
                 | 
                 = text
 
+mixin gravatar( emailMd5, name, size, def )
+    - def = def || "retro"
+    img(src="http://www.gravatar.com/avatar/#{emailMd5}?s=#{size}&d=#{def}",alt="avatar of #{name}")&attributes(attributes)
+
 html
     head
-        title Flink - theforth.net
+        title= title || "the Forth Net"
         meta(name="viewport",content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, width=device-width")
-        +style('/css/jquery-ui-smoothness.min.css')
-        +style('/css/console.css')
+        //- +style('/css/jquery-ui-smoothness.min.css')
+        +style('/css/font-awesome.min.css')
+        +style('/css/index.css')
         +styles
     body
-        div.navbar.navbar-fixed-top(role='navigation')
-            div.container-fluid
-                div.navbar-header
-                    a.navbar-brand(href="/",title="Forth-Link")
-                        | Flink
-                ul
-                    +menuItem("run",        "play",             __("Run"    ) )
-                    +menuItem("load",       "cloud-download",   __("Load"   ) )
-                    +menuItem("save",       "cloud-upload",     __("Save"   ) )
-                    //+menuItem("user",       "user",             __("Users"  ) )
-                    +menuItem("gui",        "list-alt",         __("GUI"   ) )
-                    +menuItem("info",       "info-sign",        __("Info"   ) )
-                    +menuItem("logout",     "log-out",          __("Logout" ) )
+        .wrapper
+            div.navbar.navbar-fixed-top(role='navigation')
+                div.container-fluid
+                    div.navbar-header
+                        a.navbar-brand(href="/",title="")
+                            | theForthNet
+                    ul
+                        +menuItem("/info",           "info-circle",  "About"     )
+                        +menuItem("/packages",       "cube",         "Packages"  )
+                        +menuItem("/users",          "users",        "Users"     )
+                        if loggedIn
+                            +menuItem("/logout",     "sign-out",     "Logout"    )
+                        else
+                            +menuItem("/login",      "sign-in",      "Login"     )
+                            +menuItem("/register",   "pencil-square-o",      "Sign Up"   )
 
-        div.container-fluid.main-content
-            block content
+            div.container-fluid.main-content
+                block content
 
         footer
             div.container-fluid
