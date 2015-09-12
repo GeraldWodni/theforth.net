@@ -8,7 +8,7 @@ mixin menuItem( link, icon, text )
         a(id="menu-#{link}",href="#{link}",title="#{text}")
             +fa(icon)
             span.hidden-xs
-                | 
+                |  
                 = text
 
 mixin gravatar( emailMd5, name, size, def )
@@ -35,10 +35,10 @@ html
                         +menuItem("/packages",       "cube",         "Packages"  )
                         +menuItem("/users",          "users",        "Users"     )
                         if loggedIn
+                            +menuItem("/profile",    "user",         "Profile"     )
                             +menuItem("/logout",     "sign-out",     "Logout"    )
                         else
-                            +menuItem("/login",      "sign-in",      "Login"     )
-                            +menuItem("/register",   "pencil-square-o",      "Sign Up"   )
+                            +menuItem("/profile",    "sign-in",      "Login/Sign up"     )
 
             div.container-fluid.main-content
                 block content

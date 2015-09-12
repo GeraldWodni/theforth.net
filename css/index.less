@@ -1,7 +1,11 @@
-@import "bootstrap";
-@import "materials";
+@import "variables";
 
+@import "materials";
 .material("Lime");
+
+@brand-primary: @mat-700;
+
+@import "customBootstrap";
 
 @navbar-height: 50px;
 @footer-height: 30px;
@@ -146,6 +150,11 @@ h2 .glyphicon {
     .name {
         margin-left: @avatarSize + 5px;
         line-height: @avatarSize;
+    }
+
+    img {
+        width:  @avatarSize;
+        height: @avatarSize;
     }
 
     &:hover {

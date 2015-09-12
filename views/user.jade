@@ -9,6 +9,11 @@ block content
                 h2
                     | Packages by 
                     = user.name
+                if manage
+                    a.btn.btn-primary(href="/profile/add-package")
+                        i.fa.fa-plus
+                        |  Add package
+
                 uls.fa-ul
                     each packet in packages
                         li

@@ -1,0 +1,18 @@
+//- (c)2015 by Gerald Wodni
+
+extends layout
+
+block content
+    .container
+        div.text-center
+            if error 
+                h1= error.title
+                p= error.text
+            else
+                h1 Account confirmed
+                p
+                    | you can now proceed to your 
+                    a(href="/profile")
+                        | profile
+                    | .
+

@@ -1,22 +1,48 @@
 extends layout
 
+prepend title
+    = __("Authentification required")
+
 block content
-    div.col-sm-8.col-sm-offset-2.col-md-6.col-md-offset-3
-        h1= __("Authentification required")
+    .container
+        div.col-sm-8.col-sm-offset-2.col-md-6.col-md-offset-3
+            h1= __("Authentification required")
 
-        if error
-            div.alert.alert-danger
-                strong
-                    = error
+            if error
+                div.alert.alert-danger
+                    strong
+                        = error
 
-        form(method='post',role='form')
-            div.form-group
-                label(for='username')= __("Username")
-                input.form-control(id='username',type='text',name='username',placeholder='Name',autofocus="autofocus")
-            div.form-group
-                label(for='password')= __("Password")
-                input.form-control(id='password',type='password',name='password',placeholder='Passwort')
-            button.btn.btn-default(type='submit',name='login',value='yes') Login
+            if success
+                div.alert.alert-success
+                    strong
+                        = success
 
-    +script('/js/jquery.min.js')
-    +script('/js/bootstrap.min.js')
+            if( !hideLogin )
+                form(method='post',role='form')
+                    div.form-group
+                        label(for='username')= __("Username")
+                        input.form-control(id='username',type='text',name='username',placeholder='Name',autofocus="autofocus")
+                    div.form-group
+                        label(for='password')= __("Password")
+                        input.form-control(id='password',type='password',name='password',placeholder='Passwort')
+                    button.btn.btn-primary(type='submit',name='login',value='yes') Login
+
+            if register
+                if( !hideLogin )
+                    p
+                        div.separator
+                            span
+                                | OR
+
+                if( !hideRegister )
+                    form(method='post',role='form')
+                        +text-field("username", __("Username"))
+                        +text-field("email", __("Email"))
+                        +password-field('password', __("Password"))
+                        +password-field('password2', __("Confirm password"))
+                        +text-field("captcha", __("Captcha"))
+                        +hidden-field("csrf", csrf)
+                        !=captchaPre
+                        button.btn.btn-primary(type='submit',name='register',value='yes')=__("Register")
+

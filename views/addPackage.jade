@@ -1,0 +1,19 @@
+//- (c)2015 by Gerald Wodni
+
+extends layout
+
+block content
+    .container
+        h1 Add a new package
+        include packageGuidelines
+
+        form(method='post',role='form',enctype="multipart/form-data").form-inline
+            div.form-group
+                label Package (.tar.gz or .zip)
+                input.form-control(type="file",name="file")
+            +hidden-field("set", "me")
+            button.btn.btn-primary(type='submit',name='upload',value='yes')
+                i.fa.fa-upload
+                |  Upload
+
+
