@@ -83,7 +83,7 @@ module.exports = {
                     if( err ) return next( err );
 
                     user.emailMd5 = md5( user.email );
-                    k.jade.render( req, res, "user", vals( req, { user: user, packages: packages, manage: user.link=req.session.loggedInUsername, title: user.name } ) );
+                    k.jade.render( req, res, "user", vals( req, { user: user, packages: packages, manage: req.session && user.link==req.session.loggedInUsername, title: user.name } ) );
                 });
             });
         }
