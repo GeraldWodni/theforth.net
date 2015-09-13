@@ -97,6 +97,7 @@ module.exports = {
 
 
         k.router.use( k.users.loginRequired( "login", { path: "/profile" } ) );
+        k.useSiteModule( "/profile", "theforth.net", "upload.js", { setup: { vals: vals } } );
         k.router.post("/profile/add-package", function( req, res ) {
             k.postman( req, res, function() {
                 console.log( "UPLOAD:", req.postman.raw("set") );
