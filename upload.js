@@ -45,8 +45,13 @@ module.exports = {
                 value *= 1000;
                 value += Number(v);
             });
-
             return value;
+        }
+
+        function symlink( destination, pathname, callback ) {
+            fs.unlink( pathname, function() {
+                fs.symlink( destination, pathname, callback );
+            });
         }
 
         /* handle file upload */
@@ -104,7 +109,7 @@ module.exports = {
                     },
                     /* write versions */
                     function _writeVersions( done ) {
-                        var versionsPath = path.join( prefix, "versions" ); 
+                        var versionsPath = path.join( prefix, "versions" );
                         fs.stat( versionsPath, function( err, stat ) {
                             /* exists */
                             if( err == null )
@@ -119,28 +124,49 @@ module.exports = {
                     /* write recent version */
                     function _writeRecentVersion( done ) {
                         var recentPath = path.join( prefix, "recent-version" );
-                        fs.writeFile( recentPath, keyValues.version, done );
+                        fs.writeFile( recentPath, keyValues.version, function( err ) {
+                            if( err ) return done( err );
+                            symlink( keyValues.version, path.join( prefix, "recent" ), done );
+                        });
                     },
                     /* update current */
                     function _updateCurrent( done ) {
                         var currentPath = path.join( prefix, "current-version" );
+                        var currentWildcardPath = path.join( prefix, "x.x.x-version" );
+
+                        var writeCurrent = function _writeCurrent(){
+                            /* current */
+                            fs.writeFile( currentPath, keyValues.version, function( err ) {
+                                if( err ) return done( err );
+                                symlink( keyValues.version, path.join( prefix, "current" ), function( err ) {
+                                    if( err ) return done( err );
+
+                                    /* wildcard */
+                                    fs.writeFile( currentWildcardPath, keyValues.version, function( err ) {
+                                        symlink( keyValues.version, path.join( prefix, "x.x.x" ), done );
+                                    });
+
+                                });
+                            });
+                        };
+
                         fs.readFile( currentPath, function( err, content ) {
                             /* exists */
                             if( err == null ) {
                                 /* newer? */
                                 if( versionToInt( keyValues.version ) > versionToInt( content + "" ) )
-                                    fs.writeFile( currentPath, keyValues.version, done );
+                                    writeCurrent();
                                 else
                                     done();
                             }
                             /* new */
                             else if( err.code == 'ENOENT' )
-                                fs.writeFile( currentPath, keyValues.version, done );
+                                writeCurrent();
                             else
                                 done( err );
                         });
                     }
-                    /* todo: write symlinks to current and recent */
+                    /* todo: write symlinks to N.x.x and N.N.x */
                 ], function( err ) {
                     if( err )
                         messages.push( { type: "danger", "title": "save error", text: err.message } );
