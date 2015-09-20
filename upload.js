@@ -7,6 +7,7 @@ var _       = require('underscore');
 var async   = require('async');
 var multer  = require('multer');
 var fs      = require('fs');
+var mkdirp  = require('mkdirp');
 var path    = require('path');
 var stream  = require('stream');
 var toArray = require('stream-to-array');
@@ -38,6 +39,16 @@ module.exports = {
             }
         });
 
+        function versionToInt( version ) {
+            var value = 0;
+            version.split( /\./g ).forEach( function( v ) {
+                value *= 1000;
+                value += Number(v);
+            });
+
+            return value;
+        }
+
         /* handle file upload */
         k.router.post("/upload", upload.single("file"), function( req, res ) {
             console.log( "UPLOAD".bold.yellow );
@@ -53,6 +64,90 @@ module.exports = {
             var parse = targz().createParseStream();
             var rootDirectory = null;
             var packetFile = null;
+
+            /* render website */
+            var render = function _render() {
+                /* no errors? -> show success and hide form */
+                if( _.filter( messages, function( message ) { return message.type == "danger" } ).length == 0 ) {
+                    hideForm = true;
+                    messages.push( { type: "success", title: "Great!", text: "Your new package is online" } );
+                }
+
+                k.jade.render( req, res, "addPackage", vals( req, { title: "Add package", messages: messages, hideForm: hideForm } ) );
+            };
+
+            /* save package */
+            var save = function _save( keyValues ) {
+                if( _.filter( messages, function( message ) { return message.type == "danger" } ).length > 0 )
+                    return render();
+
+                /* get prefixes */
+                var prefix = path.join( k.hierarchyRoot( req.kern.website ), "package", keyValues.name );
+                var versionPrefix = path.join( prefix, keyValues.version );
+                async.series([
+                    /* create folders */
+                    function _createDirectories( done ) {
+                        async.mapSeries( packet.directories, function( dir, d ) {
+                            dir = path.join( versionPrefix, dir.substr( keyValues.name.length ) );
+                            console.log( "DIR:", dir );
+                            mkdirp( dir, { mode: parseInt( "0775", 8 ) },  d );
+                        }, done );
+                    },
+                    /* create files */
+                    function _writeFiles( done ) {
+                        async.mapSeries( _.keys( packet.files ), function( filepath, d ) {
+                            var file = packet.files[ filepath ];
+                            filepath = path.join( versionPrefix, file.path.substr( keyValues.name.length ) );
+                            console.log( "FILE:", filepath );
+                            fs.writeFile( filepath, file.content, d );
+                        }, done);
+                    },
+                    /* write versions */
+                    function _writeVersions( done ) {
+                        var versionsPath = path.join( prefix, "versions" ); 
+                        fs.stat( versionsPath, function( err, stat ) {
+                            /* exists */
+                            if( err == null )
+                                fs.appendFile( versionsPath, "\n" + keyValues.version, done );
+                            /* new */
+                            else if( err.code == 'ENOENT' )
+                                fs.writeFile( versionsPath, "\n" + keyValues.version, done );
+                            else
+                                done( err );
+                        });
+                    },
+                    /* write recent version */
+                    function _writeRecentVersion( done ) {
+                        var recentPath = path.join( prefix, "recent-version" );
+                        fs.writeFile( recentPath, keyValues.version, done );
+                    },
+                    /* update current */
+                    function _updateCurrent( done ) {
+                        var currentPath = path.join( prefix, "current-version" );
+                        fs.readFile( currentPath, function( err, content ) {
+                            /* exists */
+                            if( err == null ) {
+                                /* newer? */
+                                if( versionToInt( keyValues.version ) > versionToInt( content + "" ) )
+                                    fs.writeFile( currentPath, keyValues.version, done );
+                                else
+                                    done();
+                            }
+                            /* new */
+                            else if( err.code == 'ENOENT' )
+                                fs.writeFile( currentPath, keyValues.version, done );
+                            else
+                                done( err );
+                        });
+                    }
+                    /* todo: write symlinks to current and recent */
+                ], function( err ) {
+                    if( err )
+                        messages.push( { type: "danger", "title": "save error", text: err.message } );
+
+                    render();
+                });
+            }
 
             parse.on( "entry", function( entry ) {
                 if( entry.type === "Directory" )
@@ -86,18 +181,12 @@ module.exports = {
                     }
                 }
             });
+            parse.on( "error", function( err ) {
+                messages.push( { type: "danger", title: "archive error", text: err } );
+                render();
+            });
             parse.on( "end", function() {
                 console.log( "Package".magenta.bold, packet );
-
-                var render = function() {
-                    /* no errors? -> show success and hide form */
-                    if( _.filter( messages, function( message ) { return message.type == "danger" } ).length == 0 ) {
-                        hideForm = true;
-                        messages.push( { type: "success", title: "Great!", text: "Your new package is online" } );
-                    }
-
-                    k.jade.render( req, res, "addPackage", vals( req, { title: "Add package", messages: messages, hideForm: hideForm } ) );
-                };
 
                 /* check for package.fs */
                 if( packetFile == null || packetFile.err ) {
@@ -187,8 +276,7 @@ module.exports = {
                     messages.push( { type: "danger", title: "root directory name invalid", text: "root-directory needs to have the same name as defined in package.fs" });
 
                 /* all done, we have a valid package.fs */
-
-                render();
+                save( keyValues );
             });
             inputStream.pipe(parse);
         });
