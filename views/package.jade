@@ -6,11 +6,36 @@ block content
     .container
         .row
             .col-md-6
-                h1= packet.name
+                h1.package= packet.name
+                h4.package= packet.description
+                hr
+                .readme
+                    if readmeFormat == "none"
+                        i No Readme found
+                    else if readmeFormat == "markdown"
+                        != readmeContent
+                    else
+                        pre
+                            = readmeContent
+
             .col-md-6
-                a(href="/~#{user.link}")
+                a(href="/~#{user.name}")
                     h2
                         | by 
                         = user.name
                     +gravatar( user.emailMd5, user.name, 32 )
+
+                h3 Tags
+                p
+                    - var separator = '';
+                    each tag in packet.tags.split(/,/)
+                        = separator
+                        - separator = ', ';
+                        a(href="/tag/#{tag}")
+                            = tag
+
+                h3 Dependencies
+                i None
+                h3 Dependents
+                i None
 

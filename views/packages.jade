@@ -1,0 +1,20 @@
+//- (c)2015 by Gerald Wodni
+
+extends layout
+
+block content
+    .container
+        .row
+            .col-md-6
+                h1
+                    = header || "Packages"
+                h4
+                    = subHeader || "All packages currently hosted on theForthNet"
+
+    .container
+        .row
+            each packet in packets
+                .col-sm-6.col-md-4.col-lg-3
+                    a.user(href="/package/#{packet.name}")
+                        .name= packet.name
+

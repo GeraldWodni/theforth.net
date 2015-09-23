@@ -2,8 +2,11 @@
 // (c)copyright 2014-2015 by Gerald Wodni <gerald.wodni@gmail.com>
 "use strict";
 
-var md5 = require( "md5" );
-var _ = require( "underscore" );
+var _       = require( "underscore" );
+var fs      = require( "fs" );
+var marked  = require( "marked" );
+var md5     = require( "md5" );
+var path    = require( "path" );
 
 module.exports = {
     setup: function( k ) {
@@ -24,16 +27,27 @@ module.exports = {
             k.httpStatus( req, res, code, { values: vals( req ) } );
         }
 
+        var kData = k.getData();
+
         k.router.get("/confirm/:hash", function( req, res, next ) {
             k.requestman( req );
 
             var hash = req.requestman.alnum( "hash" );
-            k.users.confirmCreate( req.kern.website, hash, function( err ) {
+            k.users.confirmCreate( req.kern.website, hash, function( err, user ) {
                 if( err )
                     if( err.message && err.message.indexOf( "Unknown hash" ) == 0 )
                         return k.jade.render( req, res, "confirm", vals( req, { error: { title: "Unknown hash", text:"Please use your link provided your email (visiting this page twice will also trigger this message)." } } ) );
                     else
                         return next( err );
+
+                /* create sql user */
+                console.log( "CREATE USER:", user );
+                kData.Nusers.create({
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    created: new Date()
+                });
 
                 k.jade.render( req, res, "confirm" );
             });
@@ -49,23 +63,74 @@ module.exports = {
 
         //k.router.use( k.rdb.users.loginRequired( "login" ) );
 
-
-        var kData = k.getData();
-
-        k.router.use( "/package/:link", function( req, res, next ) {
+        k.router.use( "/package/:name", function( req, res, next ) {
             k.requestman( req );
-            var packageLink = req.requestman.id( "link" );
+            var packetName = req.requestman.id( "name" );
 
-            kData.packages.readWhere( "name", [ packageLink ], function( err, packages ) {
+            var db = k.getDb();
+
+            /* packet */
+            db.query( "SELECT `packages`.*, GROUP_CONCAT( `tagNames`.`name` ) AS `tags` FROM `packages`"
+                + " LEFT JOIN `packageTags` ON `packages`.`id`=`packageTags`.`package`"
+                + " LEFT JOIN `tagNames`    ON `packageTags`.`tag`=`tagNames`.`id`"
+                + " WHERE `packages`.`name` = ?"
+                + " GROUP BY `packages`.`id`"
+                , [ packetName ], function( err, packets ) {
+
                 if( err ) return next( err );
-                if( packages.length == 0 ) return httpStatus( req, res, 404 );
+                if( packets.length == 0 ) return httpStatus( req, res, 404 );
+                var packet = packets[0];
 
-                var packet = packages[0];
-                kData.users.read( packet.openidUser, function( err, user ) {
+                /* user */
+                kData.users.read( packet.user, function( err, user ) {
                     if( err ) return next( err );
-
                     user.emailMd5 = md5( user.email );
-                    k.jade.render( req, res, "package", vals( req, { packet: packet, user: user, title: packet.name } ) );
+
+                    /* ReadMe */
+                    var packetPath = path.join( "package", packet.name, "current" );
+                    k.readHierarchyDir( req.kern.website, packetPath, function( err, items ) {
+                        if( err ) return next( err );
+
+                        var readmeMarkdownRe = /^read-?me\.(md|markdown)/i;
+                        var readmeRe = /^read-?me/i;
+                        var readmeFormat = 'none';
+                        var readmeContent = '';
+                        var readmePath  = null;
+                        for( var i = 0; i < items.length; i++ ) {
+                            var item = items[i];
+                            /* markdown found -> use it */
+                            if( readmeMarkdownRe.test( item ) ) {
+                                readmeFormat = 'markdown';
+                                readmePath = item;
+                                break;
+                            }
+                            /* plain reame found, keep looking for better format */
+                            if( readmeRe.test( item ) ) {
+                                readmeFormat = 'plain';
+                                readmePath = item;
+                            }
+                        }
+                        var render = function() {
+                            k.jade.render( req, res, "package", vals( req, { packet: packet, user: user, title: packet.name,
+                                readmeFormat: readmeFormat, readmeContent: readmeContent } ) );
+                        }
+
+                        /* read content */
+                        if( readmePath )
+                            k.readHierarchyFile( req.kern.website, path.join( packetPath, readmePath ), function( err, content ) {
+                                if( err ) return next( err );
+
+                                /* convert */
+                                if( readmeFormat == 'markdown' )
+                                    readmeContent = marked( content[0] );
+                                else
+                                    readmeContent = content[0];
+
+                                render();
+                            });
+                        else
+                            render();
+                    });
                 });
             });
         });
@@ -73,13 +138,13 @@ module.exports = {
         function renderUser( userLink, req, res, next ) {
             /* user */
             console.log( "RENDER", userLink );
-            kData.users.readWhere( "link", [ userLink ], function( err, users ) {
+            kData.users.readWhere( "name", [ userLink ], function( err, users ) {
                 if( err ) return next( err );
                 if( users.length == 0 ) return httpStatus( req, res, 404 );
 
                 /* user's packages */
                 var user = users[0];
-                kData.packages.readWhere( "user", [ user.uin ], function( err, packages ) {
+                kData.packages.readWhere( "user", [ user.id ], function( err, packages ) {
                     if( err ) return next( err );
 
                     user.emailMd5 = md5( user.email );
@@ -130,6 +195,56 @@ module.exports = {
         });
         */
 
+        k.router.get( "/tags", function( req, res, next ) {
+            kData.tags.readAll( function( err, tags ) {
+                if( err )
+                    return next( err );
+
+                k.jade.render( req, res, "tags", vals( req, { tags: tags, title: "Tags" }) );
+            });
+        });
+
+        k.router.get( "/tag/:name", function( req, res, next ) {
+            k.requestman( req );
+            var tagName = req.requestman.id( "name" );
+
+            var db = k.getDb();
+            db.query( "SELECT packages.name FROM packages INNER JOIN packageTags ON packages.id=packageTags.package"
+                + " INNER JOIN tagNames ON packageTags.tag=tagNames.id WHERE tagNames.name = ?",
+                [ tagName ], function( err, packets ) {
+
+                if( err )
+                    return next( err );
+
+                var header = "Tag '" + tagName + "'";
+                var subHeader = "Packages which match the tag";
+                k.jade.render( req, res, "packages", vals( req, { packets: packets, title: "Tag '" + tagName + "'",
+                    header: header, subHeader: subHeader } ) );
+            });
+        });
+
+        k.router.get( "/packages", function( req, res, next ) {
+            kData.packages.readAll( function( err, packets ) {
+                if( err )
+                    return next( err );
+
+                k.jade.render( req, res, "packages", vals( req, { packets: packets, title: "Packages" }) );
+            });
+        });
+
+        k.router.use( "/legacy-users", function( req, res, next ) {
+            kData.legacyUsers.readAll( function( err, users ) {
+                if( err )
+                    return next( err );
+
+                users.forEach( function( user ) {
+                    user.emailMd5 = md5( user.email );
+                });
+
+                k.jade.render( req, res, "users", vals( req, { users: users, title: "Users" }) );
+            });
+        });
+
         k.router.use( "/users", function( req, res, next ) {
             kData.users.readAll( function( err, users ) {
                 if( err )
@@ -172,3 +287,4 @@ module.exports = {
         });
     }
 };
+        

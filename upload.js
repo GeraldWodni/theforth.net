@@ -8,6 +8,7 @@ var async   = require('async');
 var multer  = require('multer');
 var fs      = require('fs');
 var mkdirp  = require('mkdirp');
+var mysql = require("mysql");
 var path    = require('path');
 var stream  = require('stream');
 var toArray = require('stream-to-array');
@@ -22,7 +23,7 @@ module.exports = {
         /* keys required in every package.fs-file */
         var requiredKeys = [ "name", "version" ];
         /* keys optional for package.fs-files */
-        var optionalKeys = [ "main" ];
+        var optionalKeys = [ "main", "tags", "description" ];
 
         /* maximum package size (in bytes) */
         var maxFileSize = 16 * 1024 * 1024;
@@ -47,6 +48,19 @@ module.exports = {
             });
             return value;
         }
+
+        function intToVersion( value ) {
+            var version = '';
+            var separator = '';
+            for( var i = 0; i < 3; i++ ) {
+                var part = value % 1000;
+                version = part + separator + version;
+                value -= part;
+                value /= 1000;
+                separator = '.';
+            }
+        }
+
 
         function symlink( destination, pathname, callback ) {
             fs.unlink( pathname, function() {
@@ -86,10 +100,27 @@ module.exports = {
                 if( _.filter( messages, function( message ) { return message.type == "danger" } ).length > 0 )
                     return render();
 
+                var db = k.getDb();
+                var updatePacket = {};
+                var updateTags = [];
+
                 /* get prefixes */
                 var prefix = path.join( k.hierarchyRoot( req.kern.website ), "package", keyValues.name );
                 var versionPrefix = path.join( prefix, keyValues.version );
                 async.series([
+                    /* check if name is already taken */
+                    function _UploadSqlCheckName( done ) {
+                        db.query("LOCK TABLES `packages` WRITE, `tagNames` WRITE, `packageTags` WRITE; SELECT EXISTS(SELECT 1 FROM `packages` WHERE `name`=? AND `user`<>?) AS `exists`",
+                            [ keyValues.name, req.user.id ], function( err, rows ) {
+
+                            if( err )
+                                done( err );
+                            else if( rows[1][0].exists )
+                                done( new Error( "Package name already in use by another user" ) );
+                            else
+                                done();
+                        });
+                    },
                     /* create folders */
                     function _createDirectories( done ) {
                         async.mapSeries( packet.directories, function( dir, d ) {
@@ -116,7 +147,7 @@ module.exports = {
                                 fs.appendFile( versionsPath, "\n" + keyValues.version, done );
                             /* new */
                             else if( err.code == 'ENOENT' )
-                                fs.writeFile( versionsPath, "\n" + keyValues.version, done );
+                                fs.writeFile( versionsPath, keyValues.version, done );
                             else
                                 done( err );
                         });
@@ -135,6 +166,15 @@ module.exports = {
                         var currentWildcardPath = path.join( prefix, "x.x.x-version" );
 
                         var writeCurrent = function _writeCurrent(){
+                            /* update sql */
+                            updatePacket.description = keyValues.description || '';
+
+                            (keyValues.tags || '').split(/,/g).forEach( function( tag ) {
+                                var tag = tag.toLowerCase().replace( /[^-_.a-z0-9]/g, '' );
+                                if( tag.length > 0 )
+                                    updateTags.push( tag );
+                            });
+
                             /* current */
                             fs.writeFile( currentPath, keyValues.version, function( err ) {
                                 if( err ) return done( err );
@@ -165,9 +205,95 @@ module.exports = {
                             else
                                 done( err );
                         });
+                    },
+                    /* update N.x.x and N.M.x */
+                    function _updateNMx( done ) {
+                        console.log( "_updateNMx" );
+                        var versionsPath = path.join( prefix, "versions" );
+                        fs.readFile( versionsPath, function( err, content ) {
+                            if( err ) return done( err );
+
+                            var versionParts = keyValues.version.split( /\./g );
+                            var versionInt = versionToInt( keyValues.version );
+                            var versions = content.toString().split(/\n/g);
+                            var N = versionParts[0];
+                            var M = versionParts[1];
+                            var NxxRe = new RegExp( '^' + N + '\\..*', 'g');
+                            var NMxRe = new RegExp( '^' + N + '\\.' + M + '\\..*', 'g');
+                            var maxNxx = versionInt;
+                            var maxNMx = versionInt;
+
+                            /* get maximum Nxx and NMx */
+                            versions.forEach( function( version ) {
+                                versionInt = versionToInt( version )
+                                if( NxxRe.test( version ) && versionInt > maxNxx )
+                                    maxNxx = versionInt;
+                                if( NMxRe.test( version ) && versionInt > maxNMx )
+                                    maxNMx = versionInt;
+                            });
+
+                            /* update symlink and file */
+                            function updateUVx( UVx, callback ) {
+                                console.log( "updateUVx", UVx );
+                                fs.writeFile( path.join( prefix, UVx + "-version" ), function( err ) {
+                                    if( err ) return callback( err );
+                                    symlink( keyValues.version, path.join( prefix, UVx ), callback );
+                                });
+                            }
+
+                            function checkNxx( err ) {
+                                console.log( "checkNxx", err );
+                                if( err )
+                                    return done( err );
+
+                                if( maxNxx == versionInt )
+                                    updateUVx( N + ".x.x", done );
+                                else
+                                    done();
+                            }
+
+                            /* check for update */
+                            if( maxNMx == versionInt )
+                                updateUVx( N + "." + M + ".x", checkNxx );
+                            else
+                                checkNxx();
+                        });
+                    },
+                    /* fetch current description if none is set */
+                    function _UploadSelectPackage( done ) {
+                        db.query( "SELECT `description` FROM `packages` WHERE `name`=?", [ keyValues.name ], function( err, data ) {
+                            if( err ) return done( err );
+                            if( !_.has( updatePacket, 'description' ) )
+                                updatePacket.description = data[0].description;
+                            done();
+                        });
+                    },
+                    /* insert/update sql-package */
+                    function _UploadSql( done ) {
+                        var now = new Date();
+
+                        db.query("INSERT INTO `packages` SET ? ON DUPLICATE KEY UPDATE `id`=LAST_INSERT_ID(`id`), `changed`=NOW(), `description`=VALUES(`description`)",
+                            [ _.extend( updatePacket, {
+                                name: keyValues.name,
+                                user: req.user.id,
+                                created: now,
+                                changed: now
+                            })], function( err, packetRes ) {
+                                if( err ) return done( err );
+
+                                /* create and assign tags */
+                                async.mapSeries( updateTags, function( tag, d ) {
+                                    db.query("INSERT INTO `tagNames` (`name`) VALUES (?) ON DUPLICATE KEY UPDATE `name`=VALUES(`name`)", [tag], function( err, tagRes ) {
+                                        if( err ) return d( err );
+                                        db.query("REPLACE INTO `packageTags` (`package`, `tag`) VALUES( ?, ? )", [ packetRes.insertId, tagRes.insertId ], d );
+                                    });
+                                }, done );
+                        });
                     }
-                    /* todo: write symlinks to N.x.x and N.N.x */
                 ], function( err ) {
+                    console.log( "Series DONE!");
+                    /* unlock tables under any circumstances */
+                    db.query( "UNLOCK TABLES" );
                     if( err )
                         messages.push( { type: "danger", "title": "save error", text: err.message } );
 
@@ -212,8 +338,6 @@ module.exports = {
                 render();
             });
             parse.on( "end", function() {
-                console.log( "Package".magenta.bold, packet );
-
                 /* check for package.fs */
                 if( packetFile == null || packetFile.err ) {
                     messages.push( { type: "danger", title: "package.fs not found:", text: "include package.fs in the root directory of your archive" } );

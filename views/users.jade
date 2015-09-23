@@ -15,7 +15,7 @@ block content
         .row
             each user in users
                 .col-sm-6.col-md-4.col-lg-3
-                    a.user(href="/~#{user.link}")
+                    a.user(href="/~#{user.name}")
                         +gravatar( user.emailMd5, user.name, 48 ).pull-left
                         .name= user.name
                         //+elink( "http://www.forth.org", "Forth Interest Group" )

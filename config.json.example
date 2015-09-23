@@ -4,7 +4,23 @@
             "host"     : "<HOST>",
             "user"     : "<USER>",
             "database" : "<DATABASE>",
-            "password" : "<PASSWORD>"
+            "password" : "<PASSWORD>",
+            "multipleStatements": true
+        },
+        "userRegistration": {
+            "enabled": true,
+            "link": "http://theforth.net/confirm/{hash}",
+            "email": {
+                "subject": "theForth.net - Registration",
+                "text": "Please klick the following link to complete your registration on theForth.net:\n{link}"
+            },
+            "timeout":      3600,
+            "smtp": {
+                "host"      : "<HOST>",
+                "user"      : "<USER>",
+                "email"     : "<EMAIL>",
+                "password"  : "<PASSWORD>"
+            }
         }
     }
 }

@@ -31,9 +31,11 @@ html
                         a.navbar-brand(href="/",title="")
                             | theForthNet
                     ul
-                        +menuItem("/info",           "info-circle",  "About"     )
-                        +menuItem("/packages",       "cube",         "Packages"  )
-                        +menuItem("/users",          "users",        "Users"     )
+                        +menuItem("/info",          "info-circle",  "About"     )
+                        +menuItem("/packages",      "cube",         "Packages"  )
+                        +menuItem("/tags",          "tags",         "Tags"  )
+                        +menuItem("/users",         "users",        "Users"     )
+                        +menuItem("/legacy-users",          "users",        "L-Users"     )
                         if loggedIn
                             +menuItem("/profile",    "user",         "Profile"     )
                             +menuItem("/logout",     "sign-out",     "Logout"    )
