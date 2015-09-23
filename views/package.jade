@@ -25,6 +25,11 @@ block content
                         = user.name
                     +gravatar( user.emailMd5, user.name, 32 )
 
+                h3 Versions
+                p
+                    | Current
+                    // include "current-version"
+
                 h3 Tags
                 p
                     - var separator = '';

@@ -133,7 +133,7 @@ h2 .glyphicon {
     }
 }
 
-.user {
+.boxItem {
     @avatarSize: 48px;
     display: block;
 
@@ -161,5 +161,22 @@ h2 .glyphicon {
         color: @black;
         text-decoration: none;
         background: @mat-300;
+    }
+
+    /* subclasses */
+    &.user {
+        img {
+            width:  @avatarSize;
+            height: @avatarSize;
+        }
+    }
+    &.tag, &.package {
+        .icon {
+            color: @mat-500;
+            float: left;
+            font-size: @avatarSize * 0.8;
+            padding-left: @avatarSize * 0.1;
+            padding-top: @avatarSize * 0.1;
+        }
     }
 }
