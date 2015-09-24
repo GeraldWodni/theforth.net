@@ -31,12 +31,21 @@ block content
             if register
                 if( !hideLogin )
                     p
-                        div.separator
-                            span
-                                | OR
+                    div.separator
+                        span Or
+                    p
 
                 if( !hideRegister )
                     form(method='post',role='form')
+                        h3 Register
+                        p
+                            | Please compose your username out of A-Z, a-z, 0-9, '_' and '-', other characters are stripped.
+                            br
+                            | We recommend
+                            b GivennameLastname
+                            |  i.e.
+                            b ChuckMoore
+
                         +text-field("username", __("Username"))
                         +text-field("email", __("Email"))
                         +password-field('password', __("Password"))
@@ -45,4 +54,5 @@ block content
                         +hidden-field("csrf", csrf)
                         !=captchaPre
                         button.btn.btn-primary(type='submit',name='register',value='yes')=__("Register")
+                        p
 

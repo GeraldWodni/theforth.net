@@ -148,7 +148,7 @@ module.exports = {
                     if( err ) return next( err );
 
                     user.emailMd5 = md5( user.email );
-                    k.jade.render( req, res, "user", vals( req, { user: user, packages: packages, manage: req.session && user.link==req.session.loggedInUsername, title: user.name } ) );
+                    k.jade.render( req, res, "user", vals( req, { user: user, packages: packages, manage: req.session && user.name==req.session.loggedInUsername, title: user.name } ) );
                 });
             });
         }
@@ -163,14 +163,28 @@ module.exports = {
 
         k.router.use( k.users.loginRequired( "login", { path: "/profile" } ) );
         k.useSiteModule( "/profile", "theforth.net", "upload.js", { setup: { vals: vals } } );
+        /* upload package */
         k.router.post("/profile/add-package", function( req, res ) {
             k.postman( req, res, function() {
                 console.log( "UPLOAD:", req.postman.raw("set") );
-                k.jade.render( req, res, "addPackage", vals( req, { title: "Add package" } ) );
+                k.jade.render( req, res, "addPackage", vals( req, { title: "Upload package" } ) );
             });
         });
         k.router.get("/profile/add-package", function( req, res ) {
-            k.jade.render( req, res, "addPackage", vals( req, { title: "Add package" } ) );
+            k.jade.render( req, res, "addPackage", vals( req, { title: "Upload package" } ) );
+        });
+
+        /* change password */
+        k.router.post("/profile/change-password", function( req, res, next ) {
+            k.users.changePassword( req, res, function( err ) {
+                if( err )
+                    k.jade.render( req, res, "changePassword", vals( req, { title: "Change Password", error: err.message } ) );
+                else
+                    k.jade.render( req, res, "changePassword", vals( req, { title: "Change Password", success: "Password changed" } ) );
+            });
+        });
+        k.router.get("/profile/change-password", function( req, res ) {
+            k.jade.render( req, res, "changePassword", vals( req, { title: "Change Password" } ) );
         });
 
         k.router.get("/profile", function( req, res, next ) {
