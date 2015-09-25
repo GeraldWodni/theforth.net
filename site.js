@@ -4,7 +4,6 @@
 
 var _       = require( "underscore" );
 var fs      = require( "fs" );
-var marked  = require( "marked" );
 var md5     = require( "md5" );
 var path    = require( "path" );
 
@@ -62,78 +61,7 @@ module.exports = {
         });
 
         //k.router.use( k.rdb.users.loginRequired( "login" ) );
-
-        k.router.use( "/package/:name", function( req, res, next ) {
-            k.requestman( req );
-            var packetName = req.requestman.id( "name" );
-
-            var db = k.getDb();
-
-            /* packet */
-            db.query( "SELECT `packages`.*, GROUP_CONCAT( `tagNames`.`name` ) AS `tags` FROM `packages`"
-                + " LEFT JOIN `packageTags` ON `packages`.`id`=`packageTags`.`package`"
-                + " LEFT JOIN `tagNames`    ON `packageTags`.`tag`=`tagNames`.`id`"
-                + " WHERE `packages`.`name` = ?"
-                + " GROUP BY `packages`.`id`"
-                , [ packetName ], function( err, packets ) {
-
-                if( err ) return next( err );
-                if( packets.length == 0 ) return httpStatus( req, res, 404 );
-                var packet = packets[0];
-
-                /* user */
-                kData.users.read( packet.user, function( err, user ) {
-                    if( err ) return next( err );
-                    user.emailMd5 = md5( user.email );
-
-                    /* ReadMe */
-                    var packetPath = path.join( "package", packet.name, "current" );
-                    k.readHierarchyDir( req.kern.website, packetPath, function( err, items ) {
-                        if( err ) return next( err );
-
-                        var readmeMarkdownRe = /^read-?me\.(md|markdown)/i;
-                        var readmeRe = /^read-?me/i;
-                        var readmeFormat = 'none';
-                        var readmeContent = '';
-                        var readmePath  = null;
-                        for( var i = 0; i < items.length; i++ ) {
-                            var item = items[i];
-                            /* markdown found -> use it */
-                            if( readmeMarkdownRe.test( item ) ) {
-                                readmeFormat = 'markdown';
-                                readmePath = item;
-                                break;
-                            }
-                            /* plain reame found, keep looking for better format */
-                            if( readmeRe.test( item ) ) {
-                                readmeFormat = 'plain';
-                                readmePath = item;
-                            }
-                        }
-                        var render = function() {
-                            k.jade.render( req, res, "package", vals( req, { packet: packet, user: user, title: packet.name,
-                                readmeFormat: readmeFormat, readmeContent: readmeContent } ) );
-                        }
-
-                        /* read content */
-                        if( readmePath )
-                            k.readHierarchyFile( req.kern.website, path.join( packetPath, readmePath ), function( err, content ) {
-                                if( err ) return next( err );
-
-                                /* convert */
-                                if( readmeFormat == 'markdown' )
-                                    readmeContent = marked( content[0] );
-                                else
-                                    readmeContent = content[0];
-
-                                render();
-                            });
-                        else
-                            render();
-                    });
-                });
-            });
-        });
+        k.useSiteModule( "/package", "theforth.net", "packet.js", { setup: { vals: vals } } );
 
         function renderUser( userLink, req, res, next ) {
             /* user */
@@ -283,6 +211,10 @@ module.exports = {
 
         k.router.get("/c", function( req, res ) {
             k.jade.render( req, res, "console" );
+        });
+
+        k.router.get("/about", function( req, res ) {
+            k.jade.render( req, res, "about" );
         });
 
         k.router.get("/legacy", function( req, res ) {

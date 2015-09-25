@@ -282,6 +282,7 @@ module.exports = {
                                 if( err ) return done( err );
 
                                 /* create and assign tags */
+                                /* TODO: check why tags are inserted multiple times */
                                 async.mapSeries( updateTags, function( tag, d ) {
                                     db.query("INSERT INTO `tagNames` (`name`) VALUES (?) ON DUPLICATE KEY UPDATE `name`=VALUES(`name`)", [tag], function( err, tagRes ) {
                                         if( err ) return d( err );

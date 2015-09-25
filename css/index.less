@@ -198,3 +198,24 @@ div.separator {
     }
 }
 
+.filetree {
+    li.file {
+        border-bottom: 1px solid @gray-lighter;
+        .clearfix();
+        padding: 1px 3px;
+        border-radius: @border-radius-small;
+    }
+    li.file:last-child {
+        border-bottom: none;
+    }
+    li.file:hover {
+        background: @gray-lighter;
+    }
+}
+
+h1.package {
+    .version {
+        color: @gray-light;
+    }
+}
+

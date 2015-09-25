@@ -2,23 +2,55 @@
 
 extends layout
 
+mixin directory(subTree, dirName)
+    li.directory(data-prefix=subTree.prefix,data-dirname=dirName)
+        +fa("folder-open").fa-li
+        = " " + dirName
+        ul.fa-ul
+            +dirTreeWalker( subTree )
+
+mixin dirTree(tree)
+    ul.fa-ul.filetree&attributes(attributes)
+        +dirTreeWalker(tree)
+
+mixin dirTreeWalker(tree)
+    each subTree, dirName in tree.dirs
+        +directory(subTree, dirName)
+    each file in tree.files
+        li.file
+            a(href=file.link).pull-right
+                | raw
+            a(href=file.link.replace( version, version + "-view"))
+                +fa("file").fa-li
+                = " " + file.name
+
 block content
     .container
         .row
-            .col-md-6
-                h1.package= packet.name
+            .col-md-6.col-lg-8
+                h1.package
+                    = packet.name
+                    if version != "current"
+                        |  
+                        span.version= version
                 h4.package= packet.description
                 hr
+                +dirTree( tree )
+                hr
                 .readme
-                    if readmeFormat == "none"
-                        i No Readme found
-                    else if readmeFormat == "markdown"
-                        != readmeContent
+                    if viewFormat == "none"
+                        i= viewContent
+                    else if viewFormat == "markdown"
+                        != viewContent
+                    else if viewFormat == "fs"
+                        //- TODO: forth syntax highlighter
+                        pre
+                            = viewContent
                     else
                         pre
-                            = readmeContent
+                            = viewContent
 
-            .col-md-6
+            .col-md-6.col-lg-4
                 a(href="/~#{user.name}")
                     h2
                         | by 
@@ -27,15 +59,19 @@ block content
 
                 h3 Versions
                 p
-                    | Current
-                    // include "current-version"
+                    each version, index in versions
+                        if index != 0
+                            | , 
+                        if version == packet.version
+                            b= version
+                        else
+                            a(href="/package/#{packet.name}/#{version}")= version
 
                 h3 Tags
                 p
-                    - var separator = '';
-                    each tag in packet.tags.split(/,/)
-                        = separator
-                        - separator = ', ';
+                    each tag, index in packet.tags.split(/,/)
+                        if index != 0
+                            | , 
                         a(href="/tag/#{tag}")
                             = tag
 
