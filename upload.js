@@ -121,6 +121,19 @@ module.exports = {
                                 done();
                         });
                     },
+                    function _UploadOverwriteProtection( done ) {
+                        var versionDir = path.join( prefix, keyValues.version );
+                        fs.stat( versionDir, function( err, stat ) {
+                            /* exists -> error */
+                            if( err == null )
+                                done( new Error( "Package version already uploaded" ) );
+                            /* new -> resume */
+                            else if( err.code == 'ENOENT' )
+                                done();
+                            else
+                                done( err );
+                        });
+                    },
                     /* create folders */
                     function _createDirectories( done ) {
                         async.mapSeries( packet.directories, function( dir, d ) {
@@ -264,7 +277,11 @@ module.exports = {
                         db.query( "SELECT `description` FROM `packages` WHERE `name`=?", [ keyValues.name ], function( err, data ) {
                             if( err ) return done( err );
                             if( !_.has( updatePacket, 'description' ) )
-                                updatePacket.description = data[0].description;
+                                if( data.length > 0 )
+                                    updatePacket.description = data[0].description;
+                                else
+                                    updatePacket.description = '';
+
                             done();
                         });
                     },
@@ -282,7 +299,6 @@ module.exports = {
                                 if( err ) return done( err );
 
                                 /* create and assign tags */
-                                /* TODO: check why tags are inserted multiple times */
                                 async.mapSeries( updateTags, function( tag, d ) {
                                     db.query("INSERT INTO `tagNames` (`name`) VALUES (?) ON DUPLICATE KEY UPDATE `name`=VALUES(`name`)", [tag], function( err, tagRes ) {
                                         if( err ) return d( err );

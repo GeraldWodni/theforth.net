@@ -69,11 +69,14 @@ block content
 
                 h3 Tags
                 p
-                    each tag, index in packet.tags.split(/,/)
-                        if index != 0
-                            | , 
-                        a(href="/tag/#{tag}")
-                            = tag
+                    if packet.tags
+                        each tag, index in packet.tags.split(/,/)
+                            if index != 0
+                                | , 
+                            a(href="/tag/#{tag}")
+                                = tag
+                    else
+                        i None
 
                 h3 Dependencies
                 i None
