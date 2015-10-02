@@ -1,7 +1,7 @@
 extends layout
 
-prepend title
-    = __("Authentification required")
+//- prepend title
+//-    = __("Authentification required")
 
 block content
     .container
@@ -41,9 +41,9 @@ block content
                         p
                             | Please compose your username out of A-Z, a-z, 0-9, '_' and '-', other characters are stripped.
                             br
-                            | We recommend
-                            b GivennameLastname
-                            |  i.e.
+                            | We recommend 
+                            b GivennameLastname 
+                            |  i.e. 
                             b ChuckMoore
 
                         +text-field("username", __("Username"))
