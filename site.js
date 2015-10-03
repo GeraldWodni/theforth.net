@@ -41,7 +41,7 @@ module.exports = {
 
                 /* create sql user */
                 console.log( "CREATE USER:", user );
-                kData.Nusers.create({
+                kData.users.create({
                     id: user.id,
                     name: user.name,
                     email: user.email,
@@ -222,6 +222,10 @@ module.exports = {
             if( k.hostname != "4data" )
                 websocketHost = "localhost.theforth.net";
             k.jade.render( req, res, "flink", { websocketHost: websocketHost } );
+        });
+
+        k.router.get("/contact", function( req, res )  {
+            k.jade.render( req, res, "contact", vals( req ) );
         });
 
         k.router.get("/", function( req, res )  {
