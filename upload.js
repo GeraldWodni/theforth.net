@@ -23,7 +23,9 @@ module.exports = {
         /* keys required in every package.fs-file */
         var requiredKeys = [ "name", "version" ];
         /* keys optional for package.fs-files */
-        var optionalKeys = [ "main", "tags", "description" ];
+        var optionalKeys = [ "main", "description" ];
+        /* list optional for package.fs-files */
+        var optionalLists = [ "tags", "dependencies" ];
 
         /* maximum package size (in bytes) */
         var maxFileSize = 16 * 1024 * 1024;
@@ -96,7 +98,7 @@ module.exports = {
             };
 
             /* save package */
-            var save = function _save( keyValues ) {
+            var save = function _save( keyValues, keyLists ) {
                 if( _.filter( messages, function( message ) { return message.type == "danger" } ).length > 0 )
                     return render();
 
@@ -182,7 +184,8 @@ module.exports = {
                             /* update sql */
                             updatePacket.description = keyValues.description || '';
 
-                            (keyValues.tags || '').split(/,/g).forEach( function( tag ) {
+                            //(keyValues.tags || '').split(/,/g).forEach( function( tag ) {
+                            (keyLists.tags || []).forEach( function( tag ) {
                                 var tag = tag.toLowerCase().replace( /[^-_.a-z0-9]/g, '' );
                                 if( tag.length > 0 )
                                     updateTags.push( tag );
@@ -364,6 +367,7 @@ module.exports = {
                 /* parse package.fs */
                 var stringStack = [];
                 var keyValues = null;
+                var keyLists = {};
                 var completed = 0;
 
                 var words = {
@@ -374,19 +378,36 @@ module.exports = {
 
                         /* enable dictionary */
                         /* push parsed string on stack */
-                        words['s"'] = function() {
-                            stringStack.push( this.parse('"') );
+                        //words['s"'] = function() {
+                        //    stringStack.push( this.parse('"') );
+                        //};
+                        /* comments */
+                        words["\\"] = function() {
+                            this.parse();
+                        };
+                        words["("] = function() {
+                            this.parse(")");
                         };
                         /* store key-value in array */
                         words["key-value"] = function() {
-                            var val = stringStack.pop();
-                            var key = stringStack.pop();
+                            var key = this.parseName();
+                            var val = this.parse();
 
                             if( key in keyValues )
                                 messages.push( { type: "danger", title: "package.fs key-value redefined", text: "key-value >" + key + "< has already been defined" } );
 
-                            keyValues[ key ] = val;
+                            if( key != "version" )
+                                keyValues[ key ] = val;
+                            console.log( ">" + key + "< = >" + val + "<");
                         };
+                        words["key-list"] = function() {
+                            var key = this.parseName();
+                            var val = this.parse();
+
+                            var list = keyLists[ key ] || []
+                            list.push( val );
+                            keyLists[ key ] = list;
+                        }
 
                         keyValues = {};
                         completed++;
@@ -399,8 +420,10 @@ module.exports = {
                             messages.push( { type: "danger", title: "package.fs semantical error:", text: "string stack not empty, please remove unnecessary strings" } );
 
                         /* disable dictionary */
-                        delete words['s"'];
+                        delete words['\\'];
+                        delete words['('];
                         delete words['key-value'];
+                        delete words['key-list'];
 
                         console.log( keyValues );
                         completed++;
@@ -420,6 +443,7 @@ module.exports = {
 
                 /* check if all necessary key-value pairs are present */
                 var definedKeys = _.keys( keyValues );
+                var definedLists = _.keys( keyLists );
 
                 requiredKeys.forEach( function( key ) {
                     if( _.contains( definedKeys, key ) )
@@ -433,9 +457,19 @@ module.exports = {
                         definedKeys = _.without( definedKeys, key );
                 });
 
+                optionalLists.forEach( function( key ) {
+                    if( _.contains( definedLists, key ) )
+                        definedLists = _.without( definedLists, key );
+                });
+
                 /* write warnings for unknown keys */
                 definedKeys.forEach( function( key ) {
                     messages.push( { type: "warning", title: "package.fs unknown key", text: ">" + key + "< is not part of the package.fs-standard, please try to avoid unnecessary keys" } );
+                });
+
+                /* write warnings for unknown lists */
+                definedLists.forEach( function( key ) {
+                    messages.push( { type: "warning", title: "package.fs unknown list", text: ">" + key + "< is not part of the package.fs-standard, please try to avoid unnecessary lists" } );
                 });
 
                 /* check if root-directory matches name */
@@ -443,7 +477,7 @@ module.exports = {
                     messages.push( { type: "danger", title: "root directory name invalid", text: "root-directory needs to have the same name as defined in package.fs" });
 
                 /* all done, we have a valid package.fs */
-                save( keyValues );
+                save( keyValues, keyLists );
             });
             inputStream.pipe(parse);
         });

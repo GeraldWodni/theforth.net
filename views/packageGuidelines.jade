@@ -1,7 +1,62 @@
 h2 Guidelines
-.alert.alert-danger
-    b Please do not upload
+.alert.alert-warning
+    b Warning: Dependencies disabled
     br
-    | The Forth 200x Committee has discussed a new package format, which is currently implemented. As soon as it is fully implemented, this message will dissapear.
-//- p Do not insult other users
-//- p TODO: write some guidelines
+    | The Forth 200x Committee has discussed a new package format, which is currently implemented.
+    | It is now possible to upload packages, but dependencies are currently ignored. So if you have packages with dependencies,
+    | please refrain from uploading now.
+    | As soon as it is fully implemented, this message will disappear.
+
+h3 Basic rules
+ul
+    li A package consists of an archive
+    li There is one root directory named exactly like the package
+    li A file called "package.fs" is in the root directory, its syntax is explained below
+
+h3 package.fs
+h4 Words
+ul
+    li
+        code forth-package
+        |  start the definition of a package, should be in the first line
+    li
+        code key-value &lt;name&gt; &lt;value ...&gt;
+        |  set the value of name to the remaining content of the line
+    li
+        code key-list &lt;list&gt; &lt;value ...&gt;
+        |  create or append &lt;value&gt; to the &lt;list&gt;
+
+h4 Mandatory keys
+ul
+    li
+        code name
+        |  name of the package
+    li
+        code version
+        |  package version
+
+h4 Optional keys
+ul
+    li
+        code description
+        |  a brief summary of what your package does
+    li
+        code main
+        |  the main file to include, otherwise "index.fs" will be assumed
+
+h4 Optional lists
+ul
+    li
+        code tags
+        |  a few tags to categorize your package, try to match existing tags
+
+
+h4 Example package.fs
+pre
+    | forth-package
+    |     key-value name my-package
+    |     key-value version 0.1.0
+    |     key-value description A brief summary of what your package does
+    |     key-list tags GPL
+    |     key-list tags Some-other-tag
+    | end-forth-package
