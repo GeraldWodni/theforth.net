@@ -21,7 +21,7 @@ module.exports = {
     setup: function( k ) {
 
         /* keys required in every package.fs-file */
-        var requiredKeys = [ "name", "version" ];
+        var requiredKeys = [ "name", "version", "license" ];
         /* keys optional for package.fs-files */
         var optionalKeys = [ "main", "description" ];
         /* list optional for package.fs-files */
