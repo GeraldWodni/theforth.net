@@ -33,7 +33,25 @@ ul
         |  name of the package
     li
         code version
-        |  package version
+        |  version number consisting of 3 decimal numbers separated by '.'
+        br
+        | Once a library has been publish, it MUST obey the following versioning scheme (subset from 
+        a(href="http://semver.org/", target="_blank")
+            | SemVer 2.0
+        | ):
+        br
+        | Given a version number MAJOR.MINOR.PATCH, increment the:
+        br
+        | MAJOR version when you make incompatible API changes,
+        br
+        | MINOR version when you add functionality in a backwards-compatible manner, and
+        br
+        | PATCH version when you make backwards-compatible bug fixes.
+        br
+        | Additional labels for pre-release and build meta data are 
+        b.text-danger
+            | not
+        |  available for reasons of simplicity.
     li
         code license
         |  name of the license you publish the system with, i.e. "GPL", "GPLv3", "MIT", ...
