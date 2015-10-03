@@ -395,6 +395,8 @@ module.exports = {
 
                             if( key in keyValues )
                                 messages.push( { type: "danger", title: "package.fs key-value redefined", text: "key-value >" + key + "< has already been defined" } );
+
+                            keyValues[ key ] = val;
                         };
                         words["key-list"] = function() {
                             var key = this.parseName();
