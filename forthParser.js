@@ -31,7 +31,7 @@ module.exports = function _forthParser( content, words ) {
         var token = "";
         while( true ) {
             var c = key();
-            if( c == delimiter || c == "\n" || c == "\r" )
+            if( c == delimiter || c == null || c == "\n" || c == "\r" )
                 return token;
             token += c;
         }
@@ -43,7 +43,7 @@ module.exports = function _forthParser( content, words ) {
         while( word == "" ) {
             skip(" ");
             word = parse(" ");
-            if( word === 0 )
+            if( word === null )
                 return null;
         }
 
@@ -60,7 +60,7 @@ module.exports = function _forthParser( content, words ) {
 
         if( word in words )
             words[ word ].apply( context );
-        else
+        else if( " " in words )
             words[ " " ].apply( context, [word] );
     }
 };

@@ -423,12 +423,14 @@ module.exports = {
                         delete words['key-value'];
                         delete words['key-list'];
 
-                        console.log( keyValues );
+                        console.log( "KeyValues:", keyValues, "KeyLists", keyLists );
                         completed++;
                     },
                     " ": function( word ) {
-                        messages.push( { type: "danger", title: "package.fs unknown word", text: ">" + word + "< has not been defined" } );
-                        console.log( ("Unknown word >" + word + "<").red.bold );
+		    	if( typeof word !== "undefined" ) {
+                            messages.push( { type: "danger", title: "package.fs unknown word", text: ">" + word + "< has not been defined" } );
+                            console.log( ("Unknown word >" + word + "<").red.bold );
+			}
                     }
                 }
 
