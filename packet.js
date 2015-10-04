@@ -5,6 +5,7 @@
 
 var _       = require('underscore');
 var async   = require('async');
+var EasyZip = require('easy-zip').EasyZip;
 var fs      = require('fs');
 var marked  = require('marked');
 var md5     = require('md5');
@@ -222,6 +223,36 @@ module.exports = {
             else
                 callback( filepath );
         }
+
+        /* download zip */
+        k.router.use( "/:name/:version([.a-z0-9]+).zip", function( req, res, next ) {
+
+            function zipVersion( name, pathname ) {
+                var pathname = k.hierarchy.lookupFile( req.kern.website, pathname );
+                if( !pathname )
+                    return next( new Error( "Unknown package-version combination" ) );
+
+                var zip = new EasyZip();
+                zip.zipFolder( pathname, function( err ) {
+                    if( err ) return next( err );
+                    zip.writeToResponse( res, name );
+                });
+            }
+
+            k.requestman( req );
+            var name = req.requestman.id( "name" );
+            var version = req.requestman.id( "version" );
+            var zipName = name + "-" + version;
+            /* numerical version? */
+            if( /^[0-9]+\.[0-9]+\.[0-9]+$/g.test( version ) )
+                zipVersion( zipName, path.join( "package", name, version ) );
+            /* read named version (if exists) */
+            else
+                k.readHierarchyFile( req.kern.website, path.join( "package", name, version + "-version" ), function( err, data ) {
+                    if( err ) return next( err );
+                    zipVersion( zipName, path.join( "package", name, data[0] + "" ) );
+                });
+        });
 
         /* view file */
         k.router.use( "/:name/:version-view/*", function( req, res, next ) {

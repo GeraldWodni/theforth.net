@@ -66,6 +66,10 @@ block content
                             b= version
                         else
                             a(href="/package/#{packet.name}/#{version}")= version
+                p
+                    a(href="/package/#{packet.name}/#{version}.zip")
+                        +fa( "download" )
+                        |  Download #{version} as zip
 
                 h3 Tags
                 p
