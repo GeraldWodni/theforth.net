@@ -11,7 +11,6 @@ var mkdirp  = require('mkdirp');
 var mysql = require("mysql");
 var path    = require('path');
 var stream  = require('stream');
-var toArray = require('stream-to-array');
 var targz   = require('tar.gz');
 var util    = require('util');
 
@@ -330,13 +329,18 @@ module.exports = {
                     entry.dirname = path.dirname( entry.path );
 
                     /* feed buffer into content-array */
-                    toArray( entry, function( err, arr ) {
+                    var chunks = [];
+                    entry.on( "data", function( data ) {
+                        chunks.push( data );
+                    });
+                    entry.on( "end", function( err ) {
                         if( err ) {
                             messages.push( { type: "danger", title: "tar.gz extract error:", text: err } );
                             entry.err = err;
                         }
 
-                        entry.content = arr;
+                        var buffer = Buffer.concat( chunks );
+                        entry.content = buffer;
                     });
 
                     /* count number of slashes in string */
