@@ -30,6 +30,17 @@ html
                     div.navbar-header
                         a.navbar-brand(href="/",title="")
                             | theForthNet
+                    div.alert.alert-danger
+                        +fa("warning")
+                        |  
+                        b.hidden-xs.hidden-sm Just Launched
+                        span.hidden-xs
+                            |  Please 
+                        a(href="https://github.com/GeraldWodni/theforth.net/issues",target="_blank")
+                            span.hidden-xs
+                                | report bugs
+                            span.inline-xs
+                                | Issues
                     ul
                         //+menuItem("/info",          "info-circle",  "About"     )
                         +menuItem("/packages",      "cube",         "Packages"  )

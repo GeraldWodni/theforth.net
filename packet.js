@@ -109,6 +109,9 @@ module.exports = {
                 /* directory */
                 function _readTree( done ) {
                     var filepath = k.hierarchy.lookupFile( req.kern.website, currentPath );
+                    if( !filepath )
+                        return done( new Error( "No Directory" ) );
+
                     readTree( { dirpath: filepath, prefix: "/package/" + values.packet.name + "/" + values.version }, function( err, tree ) {
                         if( err ) return done( err );
                         values.tree = tree;
@@ -199,6 +202,9 @@ module.exports = {
                     });
                 }
             ], function( err ) {
+                if( err && err.message === "No Directory" )
+                    return k.httpStatus( req, res, 404 );
+
                 if( err ) return next( err );
 
                 /* render */

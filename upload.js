@@ -19,11 +19,11 @@ var forthParser = require("./forthParser");
 module.exports = {
     setup: function( k ) {
 
-        /* keys required in every package.fs-file */
+        /* keys required in every package.4th-file */
         var requiredKeys = [ "name", "version", "license" ];
-        /* keys optional for package.fs-files */
+        /* keys optional for package.4th-files */
         var optionalKeys = [ "main", "description" ];
-        /* list optional for package.fs-files */
+        /* list optional for package.4th-files */
         var optionalLists = [ "tags", "dependencies" ];
 
         /* maximum package size (in bytes) */
@@ -346,10 +346,10 @@ module.exports = {
                     /* count number of slashes in string */
                     var dirDepth = (entry.dirname.match(/\//g) || []).length + 1;
 
-                    /* handle package.fs */
-                    if( entry.basename == "package.fs" && dirDepth == 1 ) {
+                    /* handle package.4th */
+                    if( entry.basename == "package.4th" && dirDepth == 1 ) {
                         if( packetFile != null )
-                            messages.push( { type: "danger", title: "multiple package.fs files:", text: "make sure you have only one root directory which contains package.fs" } );
+                            messages.push( { type: "danger", title: "multiple package.4th files:", text: "make sure you have only one root directory which contains package.4th" } );
                         else {
                             packetFile = entry;
                             rootDirectory = entry.dirname;
@@ -362,13 +362,13 @@ module.exports = {
                 render();
             });
             parse.on( "end", function() {
-                /* check for package.fs */
+                /* check for package.4th */
                 if( packetFile == null || packetFile.err ) {
-                    messages.push( { type: "danger", title: "package.fs not found:", text: "include package.fs in the root directory of your archive" } );
+                    messages.push( { type: "danger", title: "package.4th not found:", text: "include package.4th in the root directory of your archive" } );
                     return render();
                 }
 
-                /* parse package.fs */
+                /* parse package.4th */
                 var stringStack = [];
                 var keyValues = null;
                 var keyLists = {};
@@ -378,7 +378,7 @@ module.exports = {
                     /* start package definition */
                     "forth-package": function() {
                         if( keyValues != null )
-                            messages.push( { type: "danger", title: "package.fs syntax error:", text: "forth-package can only occur once" } );
+                            messages.push( { type: "danger", title: "package.4th syntax error:", text: "forth-package can only occur once" } );
 
                         /* enable dictionary */
                         /* push parsed string on stack */
@@ -398,7 +398,7 @@ module.exports = {
                             var val = this.parse();
 
                             if( key in keyValues )
-                                messages.push( { type: "danger", title: "package.fs key-value redefined", text: "key-value >" + key + "< has already been defined" } );
+                                messages.push( { type: "danger", title: "package.4th key-value redefined", text: "key-value >" + key + "< has already been defined" } );
 
                             keyValues[ key ] = val;
                         };
@@ -417,9 +417,9 @@ module.exports = {
                     /* end package definition */
                     "end-forth-package": function() {
                         if( keyValues == null )
-                            messages.push( { type: "danger", title: "package.fs syntax error:", text: "forth-package has not been declared" } );
+                            messages.push( { type: "danger", title: "package.4th syntax error:", text: "forth-package has not been declared" } );
                         if( stringStack.length != 0 )
-                            messages.push( { type: "danger", title: "package.fs semantical error:", text: "string stack not empty, please remove unnecessary strings" } );
+                            messages.push( { type: "danger", title: "package.4th semantical error:", text: "string stack not empty, please remove unnecessary strings" } );
 
                         /* disable dictionary */
                         delete words['\\'];
@@ -432,7 +432,7 @@ module.exports = {
                     },
                     " ": function( word ) {
 		    	if( typeof word !== "undefined" ) {
-                            messages.push( { type: "danger", title: "package.fs unknown word", text: ">" + word + "< has not been defined" } );
+                            messages.push( { type: "danger", title: "package.4th unknown word", text: ">" + word + "< has not been defined" } );
                             console.log( ("Unknown word >" + word + "<").red.bold );
 			}
                     }
@@ -443,7 +443,7 @@ module.exports = {
 
                 /* check if package has been completed */
                 if( completed != 2 )
-                    messages.push( { type: "danger", title: "package.fs syntax error", text: "forth-package / end-forth-package construct not completed" } );
+                    messages.push( { type: "danger", title: "package.4th syntax error", text: "forth-package / end-forth-package construct not completed" } );
 
                 /* check if all necessary key-value pairs are present */
                 var definedKeys = _.keys( keyValues );
@@ -453,7 +453,7 @@ module.exports = {
                     if( _.contains( definedKeys, key ) )
                         definedKeys = _.without( definedKeys, key );
                     else
-                        messages.push( { type: "danger", title: "package.fs missing key", text: ">" + key + "< is required" } );
+                        messages.push( { type: "danger", title: "package.4th missing key", text: ">" + key + "< is required" } );
                 });
 
                 optionalKeys.forEach( function( key ) {
@@ -468,19 +468,19 @@ module.exports = {
 
                 /* write warnings for unknown keys */
                 definedKeys.forEach( function( key ) {
-                    messages.push( { type: "warning", title: "package.fs unknown key", text: ">" + key + "< is not part of the package.fs-standard, please try to avoid unnecessary keys" } );
+                    messages.push( { type: "warning", title: "package.4th unknown key", text: ">" + key + "< is not part of the package.4th-standard, please try to avoid unnecessary keys" } );
                 });
 
                 /* write warnings for unknown lists */
                 definedLists.forEach( function( key ) {
-                    messages.push( { type: "warning", title: "package.fs unknown list", text: ">" + key + "< is not part of the package.fs-standard, please try to avoid unnecessary lists" } );
+                    messages.push( { type: "warning", title: "package.4th unknown list", text: ">" + key + "< is not part of the package.4th-standard, please try to avoid unnecessary lists" } );
                 });
 
                 /* check if root-directory matches name */
                 if( rootDirectory != keyValues["name"] )
-                    messages.push( { type: "danger", title: "root directory name invalid", text: "root-directory needs to have the same name as defined in package.fs" });
+                    messages.push( { type: "danger", title: "root directory name invalid", text: "root-directory needs to have the same name as defined in package.4th" });
 
-                /* all done, we have a valid package.fs */
+                /* all done, we have a valid package.4th */
                 save( keyValues, keyLists );
             });
             inputStream.pipe(parse);
