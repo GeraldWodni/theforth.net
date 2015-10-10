@@ -302,7 +302,7 @@ module.exports = {
 
                                 /* create and assign tags */
                                 async.mapSeries( updateTags, function( tag, d ) {
-                                    db.query("INSERT INTO `tagNames` (`name`) VALUES (?) ON DUPLICATE KEY UPDATE `name`=VALUES(`name`)", [tag], function( err, tagRes ) {
+                                    db.query("INSERT INTO `tagNames` (`name`) VALUES (?) ON DUPLICATE KEY UPDATE `id`=LAST_INSERT_ID(`id`)", [tag], function( err, tagRes ) {
                                         if( err ) return d( err );
                                         db.query("REPLACE INTO `packageTags` (`package`, `tag`) VALUES( ?, ? )", [ packetRes.insertId, tagRes.insertId ], d );
                                     });
