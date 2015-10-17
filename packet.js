@@ -5,7 +5,7 @@
 
 var _       = require('underscore');
 var async   = require('async');
-var EasyZip = require('easy-zip').EasyZip;
+var JSZip   = require('jszip');
 var fs      = require('fs');
 var marked  = require('marked');
 var md5     = require('md5');
@@ -233,30 +233,54 @@ module.exports = {
         /* download zip */
         k.router.use( "/:name/:version([.a-z0-9]+).zip", function( req, res, next ) {
 
-            function zipVersion( name, pathname ) {
+            function zipVersion( name, version, pathname ) {
                 var pathname = k.hierarchy.lookupFile( req.kern.website, pathname );
                 if( !pathname )
                     return next( new Error( "Unknown package-version combination" ) );
 
-                var zip = new EasyZip();
-                zip.zipFolder( pathname, function( err ) {
+                /* packet hierarchy */
+                readTree( { dirpath: pathname, prefix: pathname }, function( err, tree ) {
                     if( err ) return next( err );
-                    zip.writeToResponse( res, name );
+
+                    function addDirectory( zipDir, treeDir, done ) {
+                        /* add directories */
+                        async.mapSeries( _.keys( treeDir.dirs ), function _handleDir( dirKey, d ) {
+                            addDirectory( zipDir.folder( dirKey ), treeDir.dirs[ dirKey ], d );
+                        }, function _handleFiles( err ) {
+                            if( err ) return done( err );
+                        /* add files */
+                            async.mapSeries( treeDir.files, function( file, d ) {
+                                fs.readFile( file.link, function( err, content ) {
+                                    if( err ) return d( err );
+                                    zipDir.file( file.name, content );
+                                    d();
+                                });
+
+                            }, done);
+                        });
+                    }
+
+                    /* finished, create and send zip */
+                    var zip = new JSZip();
+                    addDirectory( zip.folder( name ).folder( version ), tree, function( err ) {
+                        res.setHeader('Content-Disposition', 'attachment; filename="' + name + "-" + version + '.zip"');
+                        res.send(zip.generate({type:"nodebuffer"}));
+                    });
                 });
             }
 
             k.requestman( req );
             var name = req.requestman.id( "name" );
             var version = req.requestman.id( "version" );
-            var zipName = name + "-" + version;
             /* numerical version? */
             if( /^[0-9]+\.[0-9]+\.[0-9]+$/g.test( version ) )
-                zipVersion( zipName, path.join( "package", name, version ) );
+                zipVersion( name, version, path.join( "package", name, version ) );
             /* read named version (if exists) */
             else
                 k.readHierarchyFile( req.kern.website, path.join( "package", name, version + "-version" ), function( err, data ) {
                     if( err ) return next( err );
-                    zipVersion( zipName, path.join( "package", name, data[0] + "" ) );
+                    version = data[0] + "";
+                    zipVersion( name, version, path.join( "package", name, version ) );
                 });
         });
 
