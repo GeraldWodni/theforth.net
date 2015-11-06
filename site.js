@@ -28,6 +28,8 @@ module.exports = {
 
         var kData = k.getData();
 
+        k.useSiteModule( "/", "theforth.net", "api.js" );
+
         k.router.get("/confirm/:hash", function( req, res, next ) {
             k.requestman( req );
 
@@ -215,6 +217,10 @@ module.exports = {
 
         k.router.get("/about", function( req, res ) {
             k.jade.render( req, res, "about" );
+        });
+
+        k.router.get("/guidelines", function( req, res ) {
+            k.jade.render( req, res, "guidelines" );
         });
 
         k.router.get("/legacy", function( req, res ) {
