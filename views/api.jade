@@ -1,0 +1,42 @@
+//- (c)2015 by Gerald Wodni
+
+extends layout
+
+block content
+    .container
+        h1 API
+        .alert.alert-danger
+            b Warning: Under construction
+            br
+            | I'm currently working on a Forth-client like 
+            a(href="https://www.npmjs.com/",target="_blank") npm
+            | . So not everything is final yet ;)
+
+        h2 General
+        p The last uri path item defines the type of the response. Currently the following types are supported:
+        ul
+            li
+                code text
+                |  A plain text response where every item is represented by a single line of text
+            li
+                code json
+                |  A 
+                a(href="http://www.json.org/",target="_blank")
+                    | json
+                |  object
+
+
+        hr
+
+        h2 List all packages
+        code /api/packages/&lt;type&gt;
+        p All packages uploaded to theForthNet
+        p Examples:
+            ul
+                li
+                    a(href="/api/packages/text",target="_blank") /api/packages/text
+                li
+                    a(href="/api/packages/json",target="_blank") /api/packages/json
+            
+
+

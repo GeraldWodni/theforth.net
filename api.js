@@ -14,18 +14,48 @@ module.exports = {
     setup: function( k ) {
         var kData = k.getData();
 
-        k.router.get("/api/packages/text", function(req, res ){
-            kData.packages.readAll( function( err, packets ) {
-                if( err ) return next( err );
+        function getType( req, next ) {
+            k.requestman( req );
+            var type = req.requestman.id("type");
+            if( type != "text" && type != "json" ) {
+                next( new Error( "Unknown API-type, allowed: 'text' and 'json'" ) );
+                return false;
+            }
 
-                var lines = [];
-                packets.forEach( function( packet ) {
-                    lines.push( packet.name );
+            return type;
+        }
+
+        k.router.get("/api/packages/:type", function(req, res, next ){
+            var type = getType( req, next );
+
+            if( type )
+                kData.packages.readAll( function( err, packets ) {
+                    if( err ) return next( err );
+
+                    var lines = [];
+                    var json = [];
+                    packets.forEach( function( packet ) {
+                        lines.push( packet.name );
+                        json.push({
+                            name:       packet.name,
+                            description:packet.description,
+                            created:    packet.created,
+                            changed:    packet.changed,
+                            url:        "http://theforth.net/package/" + packet.name
+                        });
+                    });
+
+                    switch( getType( req, next ) ) {
+                        case 'text':
+                            res.set('Content-Type', 'text/plain');
+                            res.end( lines.join("\n") );
+                            break;
+
+                        case 'json':
+                            res.json( json );
+                            break;
+                    }
                 });
-
-                res.set('Content-Type', 'text/plain');
-                res.end( lines.join("\n") );
-            });
         });
     }
 };

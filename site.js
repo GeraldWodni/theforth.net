@@ -223,6 +223,10 @@ module.exports = {
             k.jade.render( req, res, "guidelines" );
         });
 
+        k.router.get("/api", function( req, res ) {
+            k.jade.render( req, res, "api" );
+        });
+
         k.router.get("/legacy", function( req, res ) {
             var websocketHost = "flink.theforth.net";
             if( k.hostname != "4data" )
