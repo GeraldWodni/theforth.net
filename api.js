@@ -17,7 +17,7 @@ module.exports = {
         function getType( req, next ) {
             k.requestman( req );
             var type = req.requestman.id("type");
-            if( type != "text" && type != "json" ) {
+            if( type != "text" && type != "json" && type != "forth" ) {
                 next( new Error( "Unknown API-type, allowed: 'text' and 'json'" ) );
                 return false;
             }
@@ -33,9 +33,11 @@ module.exports = {
                     if( err ) return next( err );
 
                     var lines = [];
+                    var forth = [ "forth-packages" ];
                     var json = [];
                     packets.forEach( function( packet ) {
                         lines.push( packet.name );
+                        forth.push( "name-description " + packet.name + " " + packet.description );
                         json.push({
                             name:       packet.name,
                             description:packet.description,
@@ -46,6 +48,14 @@ module.exports = {
                     });
 
                     switch( getType( req, next ) ) {
+                        case 'forth':
+                            forth.push("end-forth-packages");
+                            var content = forth.join("\n");
+                            res.set('Content-Type', 'text/forth');
+                            res.set('Content-Length', content.length );
+                            res.end( content );
+                            break;
+
                         case 'text':
                             res.set('Content-Type', 'text/plain');
                             res.end( lines.join("\n") );
