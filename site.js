@@ -238,6 +238,9 @@ module.exports = {
             k.jade.render( req, res, "contact", vals( req ) );
         });
 
+        /* gravatar proxy */
+        k.proxyCache.gravatar( k.website, k.router );
+
         k.router.get("/", function( req, res )  {
             k.jade.render( req, res, "home", vals( req ) );
         });

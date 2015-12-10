@@ -13,7 +13,7 @@ mixin menuItem( link, icon, text )
 
 mixin gravatar( emailMd5, name, size, def )
     - def = def || "retro"
-    img(src="http://www.gravatar.com/avatar/#{emailMd5}?s=#{size}&d=#{def}",alt="avatar of #{name}")&attributes(attributes)
+    img(src="/proxy/gravatar/#{emailMd5}/#{size}/#{def}",alt="avatar of #{name}")&attributes(attributes)
 
 html
     head
