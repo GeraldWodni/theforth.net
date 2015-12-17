@@ -25,47 +25,106 @@ module.exports = {
             return type;
         }
 
-        k.router.get("/api/packages/:type", function(req, res, next ){
-            var type = getType( req, next );
-
-            if( type )
-                kData.packages.readAll( function( err, packets ) {
-                    if( err ) return next( err );
-
-                    var lines = [];
-                    var forth = [ "forth-packages" ];
-                    var json = [];
-                    packets.forEach( function( packet ) {
-                        lines.push( packet.name );
-                        forth.push( "name-description " + packet.name + " " + packet.description );
-                        json.push({
-                            name:       packet.name,
-                            description:packet.description,
-                            created:    packet.created,
-                            changed:    packet.changed,
-                            url:        "http://theforth.net/package/" + packet.name
-                        });
-                    });
-
-                    switch( getType( req, next ) ) {
-                        case 'forth':
-                            forth.push("end-forth-packages");
-                            var content = forth.join("\n");
-                            res.set('Content-Type', 'text/forth');
-                            res.set('Content-Length', content.length );
-                            res.end( content );
-                            break;
-
-                        case 'text':
-                            res.set('Content-Type', 'text/plain');
-                            res.end( lines.join("\n") );
-                            break;
-
-                        case 'json':
-                            res.json( json );
-                            break;
-                    }
+	function returnPackets( req, res, next, packets ) {
+            
+            var lines = [];
+            var forth = [ "forth-packages" ];
+            var json = [];
+            packets.forEach( function( packet ) {
+                lines.push( packet.name );
+                forth.push( "name-description " + packet.name + " " + packet.description );
+                json.push({
+                    name:       packet.name,
+                    description:packet.description,
+                    created:    packet.created,
+                    changed:    packet.changed,
+                    url:        "http://theforth.net/package/" + packet.name
                 });
+            });
+
+            switch( getType( req, next ) ) {
+                case 'forth':
+                    forth.push("end-forth-packages");
+                    var content = forth.join("\n");
+                    res.set('Content-Type', 'text/forth');
+                    res.set('Content-Length', content.length );
+                    res.end( content );
+                    break;
+
+                case 'text':
+                    res.set('Content-Type', 'text/plain');
+                    res.end( lines.join("\n") );
+                    break;
+
+                case 'json':
+                    res.json( json );
+                    break;
+            }
+	}
+
+        /* search all packages */
+        k.router.get("/api/packages/search/:type/:query", function( req, res, next ) {
+            var type = getType( req, next );
+            if( !type )
+                return next(new Error( "No type submitted" ));
+
+            var query = req.requestman.escapedLink("query");
+
+            kData.packages.readWhere( "search", [ query, query ], function( err, packets ) {
+                if( err ) return next( err );
+
+                returnPackets( req, res, next, packets );
+            });
+        });
+
+        /* list all packages */
+        k.router.get("/api/packages/:type", function( req, res, next ) {
+            var type = getType( req, next );
+            if( !type )
+                return next(new Error( "No type submitted" ));
+
+            kData.packages.readAll( function( err, packets ) {
+                if( err ) return next( err );
+
+                returnPackets( req, res, next, packets );
+            });
+        });
+
+        /*readme for package */
+        k.router.get("/api/packages/info/:type/:name", function( req, res, next ) {
+            var type = getType( req, next );
+            /* TODO: type is currently ignored */
+            if( !type )
+                return next(new Error( "No type submitted" ));
+
+            var name = req.requestman.id("name");
+            var currentPath = path.join( "package", name, "current" );
+            k.readHierarchyDir( req.kern.website, currentPath, function( err, items ) {
+                if( err ) return next( err );
+
+                var readmePath = "";
+                var readmeRe = /^read-?me/i;
+                for( var i = 0; i < items.length; i++ ) {
+                    var item = items[i];
+                    if( readmeRe.test( item ) ) {
+                        var readmePath = item;
+                        break;
+                    }
+                }
+
+                if( !readmePath )
+                    return next( new Error( "No ReadMe found" ) );
+
+                k.readHierarchyFile( req.kern.website, path.join( currentPath, readmePath ), function( err, content ) {
+                    if( err ) return next( err );
+                    content = content[0];
+                    res.set('Content-Type', 'text/plain');
+                    res.set('Content-Length', content.length );
+                    console.log( "CNTNT", content );
+                    res.end( content );
+                });
+
+            });
         });
     }
 };

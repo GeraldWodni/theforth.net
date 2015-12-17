@@ -174,6 +174,8 @@ module.exports = {
                                     values.viewFormat = 'txt';
                                     break;
                                 case '.fs':
+                                case '.4th':
+                                case '.fth':
                                     values.viewFormat = 'fs';
                                     break;
                                 case '.md':

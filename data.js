@@ -22,8 +22,9 @@ module.exports = {
 
         var packages =  k.crud.sql( db, { table: "packages",     key: "id", foreignName: "name",
             wheres: {
-                "name": { where: "`name`=?" },
-                "user": { where: "`user`=?" }
+                "name":   { where: "`name`=?" },
+                "search": { where: "`name` LIKE CONCAT('%',?,'%') OR `description` LIKE CONCAT('%',?,'%')" },
+                "user":   { where: "`user`=?" }
             }
         } );
 
