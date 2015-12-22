@@ -1,0 +1,18 @@
+{
+  "name": "theforth.net",
+  "version": "0.1.0",
+  "description": "official repository of theforth.net",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GeraldWodni/theforth.net"
+  },
+  "author": "Gerald Wodni <gerald.wodni@gmail.com>",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/GeraldWodni/theforth.net/issues"
+  },
+  "homepage": "https://theforth.net",
+  "dependencies": {
+    "unzip": "^0.1.11"
+  }
+}

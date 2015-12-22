@@ -8,11 +8,12 @@ var async   = require('async');
 var multer  = require('multer');
 var fs      = require('fs');
 var mkdirp  = require('mkdirp');
-var mysql = require("mysql");
+var mysql   = require("mysql");
 var path    = require('path');
 var stream  = require('stream');
 var targz   = require('tar.gz');
 var util    = require('util');
+var unzip   = require('unzip');
 
 var forthParser = require("./forthParser");
 
@@ -71,17 +72,16 @@ module.exports = {
 
         /* handle file upload */
         k.router.post("/upload", upload.single("file"), function( req, res ) {
-            console.log( "UPLOAD".bold.yellow );
-
             /* turn buffer into stream */
             var inputStream = new stream.PassThrough();
+            var inputType = path.extname( req.file.originalname ).toLowerCase() === ".zip" ? "zip" : "tar.gz";
             inputStream.end( req.file.buffer );
+            console.log( "UPLOAD".bold.yellow, inputType );
 
             /* parse .tar.gz */
             var messages = [];
             var hideForm = false;
             var packet = { directories: [], files: {} };
-            var parse = targz().createParseStream();
             var rootDirectory = null;
             var packetFile = null;
 
@@ -320,6 +320,16 @@ module.exports = {
                 });
             }
 
+            /* parse stream */
+            var parse;
+            if( inputType == "zip" ) {
+                parse = inputStream.pipe( unzip.Parse() );
+            }
+            else {
+                parse = targz().createParseStream();
+                inputStream.pipe(parse);
+            }
+
             parse.on( "entry", function( entry ) {
                 if( entry.type === "Directory" )
                     packet.directories.push( entry.path );
@@ -361,7 +371,7 @@ module.exports = {
                 messages.push( { type: "danger", title: "archive error", text: err } );
                 render();
             });
-            parse.on( "end", function() {
+            parse.on( "close", function() {
                 /* check for package.4th */
                 if( packetFile == null || packetFile.err ) {
                     messages.push( { type: "danger", title: "package.4th not found:", text: "include package.4th in the root directory of your archive" } );
@@ -431,10 +441,10 @@ module.exports = {
                         completed++;
                     },
                     " ": function( word ) {
-		    	if( typeof word !== "undefined" ) {
+                        if( typeof word !== "undefined" ) {
                             messages.push( { type: "danger", title: "package.4th unknown word", text: ">" + word + "< has not been defined" } );
                             console.log( ("Unknown word >" + word + "<").red.bold );
-			}
+                        }
                     }
                 }
 
@@ -483,7 +493,6 @@ module.exports = {
                 /* all done, we have a valid package.4th */
                 save( keyValues, keyLists );
             });
-            inputStream.pipe(parse);
         });
 
         k.router.get("/upload", function( req, res ) {

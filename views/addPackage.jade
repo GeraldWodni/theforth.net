@@ -30,14 +30,12 @@ block content
         if !hideForm
             form(method='post',role='form',enctype="multipart/form-data").form-inline
                 div.form-group
-                    label Package (.tar.gz or 
-                        s .zip
-                        | * )
+                    label Package (.tar.gz or .zip )
                     input.form-control(type="file",name="file")
                 +hidden-field("set", "me")
                 button.btn.btn-primary(type='submit',name='upload',value='yes')
                     i.fa.fa-upload
                     |  Upload
                 p
-                    | * zip coming soon
+                    |  
 
