@@ -74,7 +74,7 @@ block content
                 h3 Tags
                 p
                     if packet.tags
-                        each tag, index in packet.tags.split(/,/)
+                        each tag, index in _.uniq( packet.tags.split(/,/) )
                             if index != 0
                                 | , 
                             a(href="/tag/#{tag}")
@@ -83,7 +83,25 @@ block content
                         i None
 
                 h3 Dependencies
-                i None
+                p
+                    if packet.dependencies
+                        each dependency, index in _.uniq( packet.dependencies.split(/,/) )
+                            - var dependencyUrl = dependency.replace( / /, "/" );
+                            if index != 0
+                                | , 
+                            a(href="/package/#{dependencyUrl}")
+                                = dependency
+                    else
+                        i None
                 h3 Dependents
-                i None
+                p
+                    if packet.dependents
+                        each dependent, index in _.uniq( packet.dependents.split(/,/) )
+                            - var dependentUrl = dependent.replace( / /, "/" );
+                            if index != 0
+                                | , 
+                            a(href="/package/#{dependentUrl}")
+                                = dependent
+                    else
+                        i None
 

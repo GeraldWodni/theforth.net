@@ -84,9 +84,16 @@ module.exports = {
             async.series([
                 /* sql */
                 function _readPacket( done ) {
-                    db.query( "SELECT `packages`.*, GROUP_CONCAT( `tagNames`.`name` ) AS `tags` FROM `packages`"
+                    db.query( "SELECT `packages`.*, GROUP_CONCAT( `tagNames`.`name` ) AS `tags`,"
+                        + " GROUP_CONCAT(CONCAT(`dependencies`.`name`, ' ', `packageDependencies`.`dependsOnVersion`)) AS `dependencies`,"
+                        + " GROUP_CONCAT(CONCAT(`dependents`.`name`, ' ', `packageDependents`.`packageVersion`)) AS `dependents`"
+                        + " FROM `packages`"
                         + " LEFT JOIN `packageTags` ON `packages`.`id`=`packageTags`.`package`"
                         + " LEFT JOIN `tagNames`    ON `packageTags`.`tag`=`tagNames`.`id`"
+                        + " LEFT JOIN `packageDependencies` ON `packages`.`id`=`packageDependencies`.`package`"
+                        + " LEFT JOIN `packages` AS `dependencies` ON `packageDependencies`.`dependsOn`=`dependencies`.`id`"
+                        + " LEFT JOIN `packageDependencies` AS `packageDependents` ON `packages`.`id`=`packageDependents`.`dependsOn`"
+                        + " LEFT JOIN `packages` AS `dependents` ON `packageDependents`.`package`=`dependents`.`id`"
                         + " WHERE `packages`.`name` = ?"
                         + " GROUP BY `packages`.`id`"
                         , [ packetName ], function( err, packets ) {
