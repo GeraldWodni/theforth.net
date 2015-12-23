@@ -42,6 +42,20 @@ module.exports = {
             }
         });
 
+        function validName( name ) {
+            return  /^[a-z]+[-a-z0-9]*$/gi.test( name );
+        }
+
+        function validWildcardVersion( version ) {
+            return  /^\d{1,3}\.\d{1,3}\.(\d{1,3}|x)$/g.test( version )
+                ||  /^\d{1,3}\.(\d|x)\.x$/g.test( version )
+                ||  /^(\d|x)\.x\.x$/g.test( version );
+        }
+
+        function validVersion( version ) {
+            return  /^\d{1,3}\.\d{1,3}\.\d{1,3}$/g.test( version );
+        }
+
         function versionToInt( version ) {
             var value = 0;
             version.split( /\./g ).forEach( function( v ) {
@@ -104,14 +118,16 @@ module.exports = {
                 var db = k.getDb();
                 var updatePacket = {};
                 var updateTags = [];
+                var dependencies = [];
 
                 /* get prefixes */
-                var prefix = path.join( k.hierarchyRoot( req.kern.website ), "package", keyValues.name );
+                var packetsPrefix = path.join( k.hierarchyRoot( req.kern.website ), "package" );
+                var prefix = path.join( packetsPrefix, keyValues.name );
                 var versionPrefix = path.join( prefix, keyValues.version );
                 async.series([
                     /* check if name is already taken */
                     function _UploadSqlCheckName( done ) {
-                        db.query("LOCK TABLES `packages` WRITE, `tagNames` WRITE, `packageTags` WRITE; SELECT EXISTS(SELECT 1 FROM `packages` WHERE `name`=? AND `user`<>?) AS `exists`",
+                        db.query("LOCK TABLES `packages` WRITE, `packageDependencies` WRITE, `tagNames` WRITE, `packageTags` WRITE; SELECT EXISTS(SELECT 1 FROM `packages` WHERE `name`=? AND `user`<>?) AS `exists`",
                             [ keyValues.name, req.user.id ], function( err, rows ) {
 
                             if( err )
@@ -122,6 +138,36 @@ module.exports = {
                                 done();
                         });
                     },
+                    /* check dependencies */
+                    function _CheckDependencies( done ) {
+                        /* parse dependencies and check format */
+                        var dependenciesList = keyLists.dependencies || [];
+                        var dependencyNames = [ keyValues.name ];
+                        for( var i = 0; i < dependenciesList.length; i++ ) {
+                            var dependency = dependenciesList[i].split(" ");
+                            if( dependency.length != 2 )
+                                return done( new Error( "Dependency malformed. Use name-version pairs" ) );
+                            if( !validName( dependency[0] ) )
+                                return done( new Error( "Dependency name format invalid. Use a valid, existing packet reference" ) );
+                            if( dependencyNames.indexOf( dependency[0] ) >= 0 )
+                                return done( new Error( "Dependency repeated. Every dependency can only be referenced once" ) );
+                            if( !validWildcardVersion( dependency[1] ) )
+                                return done( new Error( "Dependency version format invalid. Use 3 decimal numbers ranging from 0-999 separated by dots i.e. >0.1.2<") );
+                            dependencyNames.push( dependency[0] );
+                            dependencies.push( { name: dependency[0], version: dependency[1] } );
+                        }
+
+                        /* check if dependencies exist */
+                        async.mapSeries( dependencies, function( dependency, d ) {
+                            fs.stat( path.join( packetsPrefix, dependency.name, dependency.version ), function( err ) {
+                                if( err )
+                                    d( new Error( "Dependency not found: " + dependency.name + " " + dependency.version ) );
+                                else
+                                    d();
+                            });
+                        }, done );
+                    },
+                    /* prevent overwrite */
                     function _UploadOverwriteProtection( done ) {
                         var versionDir = path.join( prefix, keyValues.version );
                         fs.stat( versionDir, function( err, stat ) {
@@ -306,7 +352,16 @@ module.exports = {
                                         if( err ) return d( err );
                                         db.query("REPLACE INTO `packageTags` (`package`, `tag`) VALUES( ?, ? )", [ packetRes.insertId, tagRes.insertId ], d );
                                     });
-                                }, done );
+                                }, function( err ) {
+                                    if( err ) return done( err );
+
+                                    /* insert dependencies */
+                                    async.mapSeries( dependencies, function( dependency, d ) {
+                                        db.query("INSERT INTO `packageDependencies` (`package`, `packageVersion`, `dependsOn`, `dependsOnVersion`) SELECT ?, ?, `id`, ? FROM `packages` WHERE `name`=?",
+                                            [ packetRes.insertId, keyValues.version, dependency.version, dependency.name ], d );
+
+                                    }, done);
+                                });
                         });
                     }
                 ], function( err ) {
@@ -314,7 +369,7 @@ module.exports = {
                     /* unlock tables under any circumstances */
                     db.query( "UNLOCK TABLES" );
                     if( err )
-                        messages.push( { type: "danger", "title": "save error", text: err.message } );
+                        messages.push( { type: "danger", "title": "Save error", text: err.message } );
 
                     render();
                 });
@@ -489,6 +544,14 @@ module.exports = {
                 /* check if root-directory matches name */
                 if( rootDirectory != keyValues["name"] )
                     messages.push( { type: "danger", title: "root directory name invalid", text: "root-directory needs to have the same name as defined in package.4th" });
+
+                /* validate name format */
+                if( keyValues.name && !validName( keyValues.name ) )
+                    messages.push( { type: "danger", title: "package name invalid", text: "start with a letter followed by letters, numbers or minus" });
+
+                /* validate version format */
+                if( keyValues.version && ! validVersion( keyValues.version ) )
+                    messages.push( { type: "danger", title: "version format invalid", text: "use 3 decimal numbers ranging from 0-999 separated by dots i.e. >0.1.2<" });
 
                 /* all done, we have a valid package.4th */
                 save( keyValues, keyLists );

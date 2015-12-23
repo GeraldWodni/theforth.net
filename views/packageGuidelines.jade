@@ -21,7 +21,11 @@ h4 Mandatory keys
 ul
     li
         code name
-        |  name of the package
+        |  name of the package starting with a letter, and consisting of letters, numbers or minus
+        br
+        | or more concise:
+        code
+            | [a-z]+[-a-z0-9]*
     li
         code version
         |  version number consisting of 3 decimal numbers separated by '.'
@@ -63,6 +67,9 @@ ul
     li
         code tags
         |  a few tags to categorize your package, try to match existing tags
+    li
+        code dependencies
+        |  package-name package-version pairs of packages required by your package
 
 
 h4 Example package.4th
@@ -73,4 +80,6 @@ pre
     |     key-value description A brief summary of what your package does
     |     key-list tags GPL
     |     key-list tags Some-other-tag
+    |     key-list dependencies stringstack 1.0.3
+    |     key-list dependencies some-other-package 0.1.x
     | end-forth-package
