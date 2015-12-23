@@ -23,13 +23,32 @@
 @footer-color: @navbar-color;
 @footer-background: @navbar-background;
 
+@until-sm: ~"(max-width: @{screen-sm-max})";
 @only-xs:  ~"(max-width: @{screen-xs-max})";
+@only-sm:  ~"(min-width: @{screen-sm-min}) and (max-width: @{screen-sm-max})";
+@only-md:  ~"(min-width: @{screen-md-min}) and (max-width: @{screen-md-max})";
+@only-lg:  ~"(min-width: @{screen-lg-min})";
 @from-sm:  ~"(min-width: @{screen-sm-min})";
+@from-md:  ~"(min-width: @{screen-md-min})";
 
 .inline-xs {
     display: none;
     @media @only-xs {
         display: inline;
+    }
+}
+
+.inline-sm {
+    display: none;
+    @media @only-sm {
+        display: inline;
+    }
+}
+
+.inline-xs-sm {
+    display: inline;
+    @media @from-md {
+        display: none;
     }
 }
 
@@ -99,6 +118,14 @@ a {
         text-decoration: none;
         // text-shadow: #000 0 0 1px;
 
+        @media @only-sm {
+            padding: 15px 10px;
+        }
+
+        @media @only-xs {
+            padding: 15px 7px;
+        }
+
         &:hover {
             color: @navbar-hover;
             background-color: @navbar-hover-background;
@@ -107,6 +134,10 @@ a {
 
     a.navbar-brand {
         font-weight: bold;
+
+        @media @only-xs {
+            padding-right: 15px;
+        }
     }
 
     ul {

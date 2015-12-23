@@ -31,15 +31,14 @@ html
                         a.navbar-brand(href="/",title="")
                             | theForthNet
                     div.alert.alert-danger
-                        +fa("warning")
-                        |  
-                        b.hidden-xs.hidden-sm Just Launched
-                        span.hidden-xs
-                            |  Please 
                         a(href="https://github.com/GeraldWodni/theforth.net/issues",target="_blank")
-                            span.hidden-xs
+                            +fa("warning")
+                            |  
+                            span.hidden-xs.hidden-sm
+                                |  Please 
+                            span.hidden-xs.hidden-sm
                                 | report bugs
-                            span.inline-xs
+                            span.inline-sm
                                 | Issues
                     ul
                         //+menuItem("/info",          "info-circle",  "About"     )
