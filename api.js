@@ -25,6 +25,22 @@ module.exports = {
             return type;
         }
 
+        function returnPlain( res, type, lines ) {
+            var content = lines.join("\n");
+            switch( type ) {
+                case 'forth':
+                    res.set('Content-Type', 'text/forth');
+                    res.set('Content-Length', content.length );
+                    res.end( content );
+                    break;
+
+                case 'text':
+                    res.set('Content-Type', 'text/plain');
+                    res.end( content );
+                    break;
+            }
+        }
+
 	function returnPackets( req, res, next, packets ) {
             
             var lines = [];
@@ -124,6 +140,51 @@ module.exports = {
                     res.end( content );
                 });
 
+            });
+        });
+
+        /* download package */
+        k.router.get("/api/packages/get/:type/:name/:version", function( req, res, next ) {
+            var type = getType( req, next );
+            if( !type )
+                return next(new Error( "No type submitted" ));
+
+            var name = req.requestman.id("name");
+            var version = req.requestman.id("version");
+
+            k.hierarchy.readHierarchyTree( req.kern.website, path.join( "package", name, version ), { prefix: path.join( "/package", name, version ) },
+                function( err, tree ) {
+                if( err ) return next( err );
+
+                if( type == "json" )
+                    return res.json( tree );
+
+                /* recursivly read content */
+                var forth = [];
+                var lines = [];
+                forth.push( "package-download " + name + " " + version );
+                function readDir( node, prefix ) {
+                    _.each( node.dirs, function( dirNode, name ) {
+                        var dirpath = path.join( prefix, name );
+
+                        forth.push( "directory " + dirpath );
+                        lines.push( dirpath );
+
+                        readDir( dirNode, path.join( prefix, name ) );
+                    });
+
+                    _.each( node.files, function( file ) {
+                        var filepath = path.join( prefix, file.name );
+
+                        forth.push( "file " + filepath + " " + file.link );
+                        lines.push( filepath );
+                    });
+                }
+
+                readDir( tree, "/" );
+                forth.push( "end-package-download" );
+
+                returnPlain( res, type, type == "forth" ? forth : lines );
             });
         });
     }

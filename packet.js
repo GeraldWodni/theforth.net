@@ -29,51 +29,6 @@ module.exports = {
             return value;
         }
 
-
-        /* TODO: taken from media.js, put this into new kern-fs or media module */
-        function readTree( opts, callback ) {
-            var tree = { dirs: {}, files: [] };
-
-            /* queue worker */
-            var treeQueue = async.queue( function( task, next ) {
-
-                /* directory contents */
-                fs.readdir( task.dirpath, function( err, filenames ) {
-                    if( err )
-                        return next( err );
-
-                    /* run stat for content */
-                    async.mapSeries( filenames, function( filename, d ) {
-                        var filepath = path.join( task.dirpath, filename );
-                        fs.stat( filepath, function( err, stat ) {
-                            if( err )
-                                return d( err );
-
-                            /* spawn new worker for every directory */
-                            if( stat.isDirectory() ) {
-                                var prefix = path.join( task.prefix, filename ); 
-                                var newTree = { dirs: {}, files: [], prefix: task.prefix, path: prefix };
-                                task.tree.dirs[ filename ] = newTree;
-                                treeQueue.push( { dirpath: filepath, tree: newTree, prefix: prefix } );
-                            }
-                            /* just add file */
-                            else {
-                                var link = path.join( task.prefix, filename );
-                                task.tree.files.push( { name: filename, link: link } );
-                            }
-                            d();
-                        });
-                    }, next );
-                });
-            });
-
-            /* all done, callback */
-            treeQueue.drain = function( err ) {
-                callback( err, tree );
-            };
-            treeQueue.push( { dirpath: opts.dirpath, tree: tree, prefix: opts.prefix } );
-        }
-
         function renderPacket( req, res, next, packetName, packetVersion, filepath ) {
             var db = k.getDb();
 
@@ -119,7 +74,7 @@ module.exports = {
                     if( !filepath )
                         return done( new Error( "No Directory" ) );
 
-                    readTree( { dirpath: filepath, prefix: "/package/" + values.packet.name + "/" + values.version }, function( err, tree ) {
+                    k.hierarchy.readTree( { dirpath: filepath, prefix: "/package/" + values.packet.name + "/" + values.version }, function( err, tree ) {
                         if( err ) return done( err );
                         values.tree = tree;
                         done();
