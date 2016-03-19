@@ -144,7 +144,7 @@ module.exports = {
         });
 
         /* download package */
-        k.router.get("/api/packages/get/:type/:name/:version", function( req, res, next ) {
+        k.router.get("/api/packages/content/:type/:name/:version", function( req, res, next ) {
             var type = getType( req, next );
             if( !type )
                 return next(new Error( "No type submitted" ));
@@ -162,7 +162,7 @@ module.exports = {
                 /* recursivly read content */
                 var forth = [];
                 var lines = [];
-                forth.push( "package-download " + name + " " + version );
+                forth.push( "package-content " + name + " " + version );
                 function readDir( node, prefix ) {
                     _.each( node.dirs, function( dirNode, name ) {
                         var dirpath = path.join( prefix, name );
@@ -182,7 +182,7 @@ module.exports = {
                 }
 
                 readDir( tree, "/" );
-                forth.push( "end-package-download" );
+                forth.push( "end-package-content" );
 
                 returnPlain( res, type, type == "forth" ? forth : lines );
             });
