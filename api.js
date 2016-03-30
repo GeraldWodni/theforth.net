@@ -144,47 +144,92 @@ module.exports = {
         });
 
         /* download package */
+        function versionToInt( version ) {
+            var value = 0;
+            version.split( /\./g ).forEach( function( v ) {
+                value *= 1000;
+                value += Number(v);
+            });
+            return value;
+        }
+
+        function getMatchingVersion( website, packet, requestedVersion, callback ) {
+            k.readHierarchyFile( website, path.join( "package", packet, "versions" ), function( err, contents ) {
+                if( err ) return callback( err );
+
+                var versions = contents[0].toString().split(/\n/g);
+
+                /* transform requested version to regex */
+                var parts = requestedVersion.split( /\./g );
+                for( var i = 0; i < parts.length; i++ )
+                    parts[i] = parts[i].replace( /x/, '.*' );
+                var versionRe = new RegExp( '^' + parts[0] + '\\.' + parts[1] + '\\.' + parts[2] + '$', 'g' );
+
+                var maxMatch;
+                var maxMatchInt = -1;
+
+                /* get maximum Nxx and NMx */
+                versions.forEach( function( version ) {
+                    var versionInt = versionToInt( version )
+                    if( versionRe.test( version ) && versionInt > maxMatchInt ) {
+                        maxMatchInt = versionInt;
+                        maxMatch = version;
+                    }
+                });
+
+                if( maxMatchInt > 0 )
+                    callback( null, maxMatch );
+                else
+                    callback( new Error( "No matching version found" ) );
+            });
+        }
+
         k.router.get("/api/packages/content/:type/:name/:version", function( req, res, next ) {
             var type = getType( req, next );
             if( !type )
                 return next(new Error( "No type submitted" ));
 
             var name = req.requestman.id("name");
-            var version = req.requestman.id("version");
+            var requestedVersion = req.requestman.id("version");
 
-            k.hierarchy.readHierarchyTree( req.kern.website, path.join( "package", name, version ), { prefix: path.join( "/package", name, version ) },
-                function( err, tree ) {
+            /* get best matching version */
+            getMatchingVersion( req.kern.website, name, requestedVersion, function( err, version ) {
                 if( err ) return next( err );
 
-                if( type == "json" )
-                    return res.json( tree );
+                k.hierarchy.readHierarchyTree( req.kern.website, path.join( "package", name, version ), { prefix: path.join( "/package", name, version ) },
+                    function( err, tree ) {
+                    if( err ) return next( err );
 
-                /* recursivly read content */
-                var forth = [];
-                var lines = [];
-                forth.push( "package-content " + name + " " + version );
-                function readDir( node, prefix ) {
-                    _.each( node.dirs, function( dirNode, name ) {
-                        var dirpath = path.join( prefix, name );
+                    if( type == "json" )
+                        return res.json( tree );
 
-                        forth.push( "directory " + dirpath );
-                        lines.push( dirpath );
+                    /* recursivly read content */
+                    var forth = [];
+                    var lines = [];
+                    forth.push( "package-content " + name + " " + version );
+                    function readDir( node, prefix ) {
+                        _.each( node.dirs, function( dirNode, name ) {
+                            var dirpath = path.join( prefix, name );
 
-                        readDir( dirNode, path.join( prefix, name ) );
-                    });
+                            forth.push( "directory " + dirpath );
+                            lines.push( dirpath );
 
-                    _.each( node.files, function( file ) {
-                        var filepath = path.join( prefix, file.name );
+                            readDir( dirNode, path.join( prefix, name ) );
+                        });
 
-                        forth.push( "file " + filepath + " " + file.link );
-                        lines.push( filepath );
-                    });
-                }
+                        _.each( node.files, function( file ) {
+                            var filepath = path.join( prefix, file.name );
 
-                readDir( tree, "/" );
-                forth.push( "end-package-content" );
+                            forth.push( "file " + filepath + " " + file.link );
+                            lines.push( filepath );
+                        });
+                    }
 
-                returnPlain( res, type, type == "forth" ? forth : lines );
+                    readDir( tree, "/" );
+                    forth.push( "end-package-content" );
+
+                    returnPlain( res, type, type == "forth" ? forth : lines );
+                });
             });
         });
     }
