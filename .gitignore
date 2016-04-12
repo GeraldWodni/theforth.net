@@ -33,3 +33,9 @@ bower_components
 
 # hide real config parameters
 config.json
+
+# ignore packages, they are a separate repository
+package
+
+# ignore ssh keys, they can be regenerated and added to github
+ssh

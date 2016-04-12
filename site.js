@@ -92,6 +92,7 @@ module.exports = {
 
 
         k.router.use( k.users.loginRequired( "login", { path: "/profile" } ) );
+        k.useSiteModule( "/git", "theforth.net", "git.js", { setup: { vals: vals } } );
         k.useSiteModule( "/profile", "theforth.net", "upload.js", { setup: { vals: vals } } );
         /* upload package */
         k.router.post("/profile/add-package", function( req, res ) {
