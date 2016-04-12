@@ -14,6 +14,7 @@ var stream  = require('stream');
 var targz   = require('tar.gz');
 var util    = require('util');
 var unzip   = require('unzip');
+var git	    = require('./git');
 
 var forthParser = require("./forthParser");
 
@@ -296,7 +297,7 @@ module.exports = {
                             /* update symlink and file */
                             function updateUVx( UVx, callback ) {
                                 console.log( "updateUVx", UVx );
-                                fs.writeFile( path.join( prefix, UVx + "-version" ), function( err ) {
+                                fs.writeFile( path.join( prefix, UVx + "-version" ), keyValues.version, function( err ) {
                                     if( err ) return callback( err );
                                     symlink( keyValues.version, path.join( prefix, UVx ), callback );
                                 });
@@ -370,6 +371,18 @@ module.exports = {
                     db.query( "UNLOCK TABLES" );
                     if( err )
                         messages.push( { type: "danger", "title": "Save error", text: err.message } );
+                    /* if all went well, background commit and push git */
+                    else {
+                        var sshDir = path.join( k.hierarchyRoot( req.kern.website ), "ssh" );
+                        var packagePath = path.join( k.hierarchyRoot( req.kern.website ), "package" );
+                        var commitMessage = keyValues.name + " " + keyValues.version + " (automated commit)";
+                        git.addCommitPush( sshDir, packagePath, commitMessage, function( err, result ){
+                            if( err )
+                                console.log( "ERROR".bold.red, err );
+                            else
+                                console.log( "Git Pushed".bold.green );
+                        })
+                    }
 
                     render();
                 });
