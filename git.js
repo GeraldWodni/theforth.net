@@ -4,9 +4,6 @@
 var path      = require("path");
 var Git       = require("nodegit");
 
-            //var packagePath = path.join( k.hierarchyRoot( req.kern.website ), "package" );
-            //var sshDir = path.join( k.hierarchyRoot( req.kern.website ), "ssh" );
-
 /* package subrepo status */
 function repoStatus( dir, callback ) {
     Git.Repository.open(dir)

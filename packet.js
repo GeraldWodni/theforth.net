@@ -203,7 +203,7 @@ module.exports = {
                     return next( new Error( "Unknown package-version combination" ) );
 
                 /* packet hierarchy */
-                readTree( { dirpath: pathname, prefix: pathname }, function( err, tree ) {
+                k.hierarchy.readTree( { dirpath: pathname, prefix: pathname }, function( err, tree ) {
                     if( err ) return next( err );
 
                     function addDirectory( zipDir, treeDir, done ) {

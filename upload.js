@@ -376,12 +376,17 @@ module.exports = {
                         var sshDir = path.join( k.hierarchyRoot( req.kern.website ), "ssh" );
                         var packagePath = path.join( k.hierarchyRoot( req.kern.website ), "package" );
                         var commitMessage = keyValues.name + " " + keyValues.version + " (automated commit)";
-                        git.addCommitPush( sshDir, packagePath, commitMessage, function( err, result ){
-                            if( err )
-                                console.log( "ERROR".bold.red, err );
-                            else
-                                console.log( "Git Pushed".bold.green );
-                        })
+                        /* display status for debug informations */
+                        git.getStatus( packagePath, function( err, files ) {
+                            console.log( "Git Status".bold.yellow, files );
+                            /* add, commit and push */
+                            git.addCommitPush( sshDir, packagePath, commitMessage, function( err, result ){
+                                if( err )
+                                    console.log( "ERROR".bold.red, err );
+                                else
+                                    console.log( "Git Pushed".bold.green );
+                            });
+                        });
                     }
 
                     render();
@@ -573,6 +578,14 @@ module.exports = {
 
         k.router.get("/upload", function( req, res ) {
             k.jade.render( req, res, "addPackage", vals( req, { title: "Add package", messages: [] } ) );
+        });
+
+        /* diagnostic url with no obvious harm */
+        k.router.get("/git-status", function( req, res ) {
+            var packagePath = path.join( k.hierarchyRoot( req.kern.website ), "package" );
+            git.getStatus( packagePath, function( err, files ) {
+                res.json( files );
+            });
         });
     }
 };
