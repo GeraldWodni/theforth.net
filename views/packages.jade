@@ -14,8 +14,9 @@ block content
     .container
         .row
             each packet in packets
-                .col-sm-6.col-md-4.col-lg-3
-                    a.boxItem.package(href="/package/#{packet.name}")
-                        +fa("cube").icon
-                        .name= packet.name
+                if packet.name != 'testy'
+                    .col-sm-6.col-md-4.col-lg-3
+                        a.boxItem.package(href="/package/#{packet.name}")
+                            +fa("cube").icon
+                            .name= packet.name
 

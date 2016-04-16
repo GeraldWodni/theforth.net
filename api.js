@@ -128,16 +128,25 @@ module.exports = {
                     }
                 }
 
+                function send( content ) {
+                    k.readHierarchyFile( req.kern.website, path.join( "package", name, "current-version" ), function( err, version ) {
+                        if( err ) return next( err );
+
+                        /* add name and version */
+                        content = name + " v:" + version[0] + "\n" + content;
+                        /* send */
+                        res.set('Content-Type', 'text/plain');
+                        res.set('Content-Length', content.length );
+                        res.end( content );
+                    });
+                }
+
                 if( !readmePath )
-                    return next( new Error( "No ReadMe found" ) );
+                    return send( "" );
 
                 k.readHierarchyFile( req.kern.website, path.join( currentPath, readmePath ), function( err, content ) {
                     if( err ) return next( err );
-                    content = content[0];
-                    res.set('Content-Type', 'text/plain');
-                    res.set('Content-Length', content.length );
-                    console.log( "CNTNT", content );
-                    res.end( content );
+                    send( content[0] );
                 });
 
             });
