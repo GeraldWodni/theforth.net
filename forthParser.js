@@ -32,7 +32,10 @@ module.exports = function _forthParser( content, words ) {
         while( true ) {
             var c = key();
             if( c == delimiter || c == null || c == "\n" || c == "\r" )
-                return token;
+                if( token == "" && c == null )
+                    return null;
+                else
+                    return token;
             token += c;
         }
     }
@@ -60,6 +63,8 @@ module.exports = function _forthParser( content, words ) {
 
         if( word in words )
             words[ word ].apply( context );
+        else if( word == null )
+            /* if file ends with multiple newlines do nothing */;
         else if( " " in words )
             words[ " " ].apply( context, [word] );
     }
