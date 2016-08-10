@@ -3,10 +3,11 @@
 extends layout
 
 block content
+    +script("/js/upload.js")
     .container
         h1 Add a new package
 
-        h2 Guidelines
+        h2#package-guidelines-header Guidelines
         //-.alert.alert-danger
         //-    b Warning: Under construction
         //-    br
@@ -19,7 +20,8 @@ block content
         //-    | It is now possible to upload packages, but dependencies are currently ignored. So if you have packages with dependencies,
         //-    | please refrain from uploading now.
         //-    | As soon as it is fully implemented, this message will disappear.
-        include packageGuidelines
+        #package-guidelines
+            include packageGuidelines
 
         each message in messages
             .alert(class="alert-#{message.type}")

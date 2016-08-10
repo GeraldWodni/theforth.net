@@ -14,7 +14,7 @@ var stream  = require('stream');
 var targz   = require('tar.gz');
 var util    = require('util');
 var unzip   = require('unzip');
-var git	    = require('./git');
+var git     = require('./git');
 
 var forthParser = require("./forthParser");
 
@@ -128,6 +128,7 @@ module.exports = {
                 async.series([
                     /* check if name is already taken */
                     function _UploadSqlCheckName( done ) {
+                        console.log("Upload".yellow, "checking sql-name");
                         db.query("LOCK TABLES `packages` WRITE, `packageDependencies` WRITE, `tagNames` WRITE, `packageTags` WRITE; SELECT EXISTS(SELECT 1 FROM `packages` WHERE `name`=? AND `user`<>?) AS `exists`",
                             [ keyValues.name, req.user.id ], function( err, rows ) {
 
@@ -141,6 +142,7 @@ module.exports = {
                     },
                     /* check dependencies */
                     function _CheckDependencies( done ) {
+                        console.log("Upload".yellow, "checking dependencies");
                         /* parse dependencies and check format */
                         var dependenciesList = keyLists.dependencies || [];
                         var dependencyNames = [ keyValues.name ];
@@ -170,6 +172,7 @@ module.exports = {
                     },
                     /* prevent overwrite */
                     function _UploadOverwriteProtection( done ) {
+                        console.log("Upload".yellow, "ensuring overwrite protection");
                         var versionDir = path.join( prefix, keyValues.version );
                         fs.stat( versionDir, function( err, stat ) {
                             /* exists -> error */
@@ -184,6 +187,9 @@ module.exports = {
                     },
                     /* create folders */
                     function _createDirectories( done ) {
+                        console.log("Upload".yellow, "creating directories");
+                        /* ensure packet root is created */
+                        packet.directories.push( keyValues.name );
                         async.mapSeries( packet.directories, function( dir, d ) {
                             dir = path.join( versionPrefix, dir.substr( keyValues.name.length ) );
                             console.log( "DIR:", dir );
@@ -192,6 +198,7 @@ module.exports = {
                     },
                     /* create files */
                     function _writeFiles( done ) {
+                        console.log("Upload".yellow, "writing files");
                         async.mapSeries( _.keys( packet.files ), function( filepath, d ) {
                             var file = packet.files[ filepath ];
                             filepath = path.join( versionPrefix, file.path.substr( keyValues.name.length ) );
@@ -201,6 +208,7 @@ module.exports = {
                     },
                     /* write versions */
                     function _writeVersions( done ) {
+                        console.log("Upload".yellow, "writing versions");
                         var versionsPath = path.join( prefix, "versions" );
                         fs.stat( versionsPath, function( err, stat ) {
                             /* exists */
@@ -215,6 +223,7 @@ module.exports = {
                     },
                     /* write recent version */
                     function _writeRecentVersion( done ) {
+                        console.log("Upload".yellow, "writing recent version");
                         var recentPath = path.join( prefix, "recent-version" );
                         fs.writeFile( recentPath, keyValues.version, function( err ) {
                             if( err ) return done( err );
@@ -223,6 +232,7 @@ module.exports = {
                     },
                     /* update current */
                     function _updateCurrent( done ) {
+                        console.log("Upload".yellow, "updating current entry");
                         var currentPath = path.join( prefix, "current-version" );
                         var currentWildcardPath = path.join( prefix, "x.x.x-version" );
 
@@ -270,7 +280,7 @@ module.exports = {
                     },
                     /* update N.x.x and N.M.x */
                     function _updateNMx( done ) {
-                        console.log( "_updateNMx" );
+                        console.log("Upload".yellow, "updating NMx");
                         var versionsPath = path.join( prefix, "versions" );
                         fs.readFile( versionsPath, function( err, content ) {
                             if( err ) return done( err );
@@ -323,6 +333,7 @@ module.exports = {
                     },
                     /* fetch current description if none is set */
                     function _UploadSelectPackage( done ) {
+                        console.log("Upload".yellow, "getting description");
                         db.query( "SELECT `description` FROM `packages` WHERE `name`=?", [ keyValues.name ], function( err, data ) {
                             if( err ) return done( err );
                             if( !_.has( updatePacket, 'description' ) )
@@ -338,6 +349,7 @@ module.exports = {
                     function _UploadSql( done ) {
                         var now = new Date();
 
+                        console.log("Upload".yellow, "updating sql package row");
                         db.query("INSERT INTO `packages` SET ? ON DUPLICATE KEY UPDATE `id`=LAST_INSERT_ID(`id`), `changed`=NOW(), `description`=VALUES(`description`)",
                             [ _.extend( updatePacket, {
                                 name: keyValues.name,
@@ -366,13 +378,13 @@ module.exports = {
                         });
                     }
                 ], function( err ) {
-                    console.log( "Series DONE!");
+                    console.log("Upload".yellow, "Series Done".bold.green);
                     /* unlock tables under any circumstances */
                     db.query( "UNLOCK TABLES" );
                     if( err )
                         messages.push( { type: "danger", "title": "Save error", text: err.message } );
                     /* if all went well, background commit and push git */
-                    else {
+                    else if( req.kern.getWebsiteConfig( "upload.autoCommit", false ) ) {
                         var sshDir = path.join( k.hierarchyRoot( req.kern.website ), "ssh" );
                         var packagePath = path.join( k.hierarchyRoot( req.kern.website ), "package" );
                         var commitMessage = keyValues.name + " " + keyValues.version + " (automated commit)";
