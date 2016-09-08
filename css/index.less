@@ -211,6 +211,34 @@ h2 .glyphicon {
         line-height: @avatarSize;
     }
 
+    &.two-line {
+        .name, .description {
+            margin-left: @avatarSize + 5px;
+            line-height: @avatarSize / 2.5;
+            height: @avatarSize / 2.5;
+            overflow: hidden;
+        }
+        .name {
+            margin-top:  @avatarSize / 10 ;
+        }
+        .description {
+            .mat( "Grey"; 600 );
+            color: @mat;
+            margin-bottom:  @avatarSize / 10 ;
+
+        }
+    }
+
+    &.fadeout:before {
+        @fadeWidth: 64px;
+        position: relative;
+        float: right;
+        margin-left: -@fadeWidth;
+        width: @fadeWidth;
+        height: @avatarSize;
+        background-image: linear-gradient(90deg, transparent, @mat-50);
+    }
+
     img {
         width:  @avatarSize;
         height: @avatarSize;
