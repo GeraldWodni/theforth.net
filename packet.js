@@ -29,6 +29,16 @@ module.exports = {
             return value;
         }
 
+        /* markdown setup and post-processing */
+        marked.setOptions({
+            sanitize: true /* disable inline HTML */
+        });
+
+        function markdown( md ) {
+            var html = marked( md );
+            return html.replace( /<table>/g, '<table class="table">' );
+        }
+
         function renderPacket( req, res, next, packetName, packetVersion, filepath ) {
             var db = k.getDb();
 
@@ -121,7 +131,7 @@ module.exports = {
 
                             /* convert */
                             if( values.viewFormat == 'markdown' )
-                                values.viewContent = marked( content[0] );
+                                values.viewContent = markdown( content[0] );
                             else
                                 values.viewContent = content[0];
                             done();
@@ -143,7 +153,7 @@ module.exports = {
                                 case '.md':
                                 case '.markdown':
                                     values.viewFormat = 'markdown';
-                                    values.viewContent = marked( content + "" );
+                                    values.viewContent = markdown( content + "" );
                                     break;
                                 default:
                                     values.viewFormat = 'none';
