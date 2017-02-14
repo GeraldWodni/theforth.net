@@ -34,9 +34,23 @@ module.exports = {
             sanitize: true /* disable inline HTML */
         });
 
-        function markdown( md ) {
+        function markdown( md, opts ) {
+            opts = opts || {};
             var html = marked( md );
-            return html.replace( /<table>/g, '<table class="table">' );
+            html = html.replace( /<table>/g, '<table class="table">' );
+
+            /* prefix local links */
+            if( opts.prefixLinks )
+                html = html.replace( /<a href="([^"]+)"/g, function(match, link) {
+                    /* do not replace global links */
+                    if( link.indexOf( "\/\/" ) >= 0 )
+                        return match;
+
+                    link = path.join( opts.prefixLinks, link );
+                    return '<a href="' + link + '"';
+                });
+
+            return html;
         }
 
         function renderPacket( req, res, next, packetName, packetVersion, filepath ) {
@@ -131,7 +145,7 @@ module.exports = {
 
                             /* convert */
                             if( values.viewFormat == 'markdown' )
-                                values.viewContent = markdown( content[0] );
+                                values.viewContent = markdown( content[0], { prefixLinks: "/" + currentPath + "-view/" } );
                             else
                                 values.viewContent = content[0];
                             done();
