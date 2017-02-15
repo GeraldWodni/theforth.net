@@ -41,13 +41,13 @@ module.exports = {
 
             /* prefix local links */
             if( opts.prefixLinks )
-                html = html.replace( /<a href="([^"]+)"/g, function(match, link) {
+                html = html.replace( /(src|href)="([^"]+)"/g, function(match, tag, link) {
                     /* do not replace global links */
                     if( link.indexOf( "\/\/" ) >= 0 )
                         return match;
 
-                    link = path.join( opts.prefixLinks, link );
-                    return '<a href="' + link + '"';
+                    link = path.join( opts.prefixLinks[tag], link );
+                    return tag + '="' + link + '"';
                 });
 
             return html;
@@ -145,7 +145,12 @@ module.exports = {
 
                             /* convert */
                             if( values.viewFormat == 'markdown' )
-                                values.viewContent = markdown( content[0], { prefixLinks: "/" + currentPath + "-view/" } );
+                                values.viewContent = markdown( content[0], {
+                                    prefixLinks: {
+                                        href:   "/" + currentPath + "-view/",
+                                        src:    "/" + currentPath + "/"
+                                    }
+                                } );
                             else
                                 values.viewContent = content[0];
                             done();
