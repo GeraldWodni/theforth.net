@@ -136,6 +136,25 @@ module.exports = {
                         done();
                     });
                 },
+                /* check for linked content like images */
+                function _linkedContent( done ) {
+                    /* make sure a path was given */
+                    if( !filepath )
+                        return done();
+
+                    /* local path -> url */
+                    var linkpath = filepath.replace( /^websites\/theforth.net/, '' );
+                    /* select renderer */
+                    switch( path.extname( filepath ).toLowerCase() ) {
+                        case '.png':
+                        case '.gif':
+                        case '.jpg':
+                            values.viewFormat = 'image';
+                            values.linkedContent = linkpath;
+                            break;
+                    }
+                    done();
+                },
                 /* file-content */
                 function _readMeContent( done ) {
                     /* view readme */
@@ -155,6 +174,9 @@ module.exports = {
                                 values.viewContent = content[0];
                             done();
                         });
+                    /* linked file */
+                    else if( values.linkedContent )
+                        done();
                     /* view file */
                     else if( filepath ) {
                         fs.readFile( filepath, function( err, content ) {
@@ -167,6 +189,7 @@ module.exports = {
                                 case '.f':
                                 case '.fs':
                                 case '.4th':
+                                case '.frt':
                                 case '.fth':
                                     values.viewFormat = 'fs';
                                     break;

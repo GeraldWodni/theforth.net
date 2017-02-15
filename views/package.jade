@@ -40,6 +40,8 @@ block content
                 .readme
                     if viewFormat == "none"
                         i= viewContent
+                    else if viewFormat == "image"
+                        img(src=linkedContent,alt="image")
                     else if viewFormat == "markdown"
                         != viewContent
                     else if viewFormat == "fs"
