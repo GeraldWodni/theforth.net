@@ -534,7 +534,7 @@ module.exports = {
                 }
 
                 /* run parser */
-                forthParser( packetFile.content + "", words );
+                forthParser( (packetFile.content + "").replace(/\t/g, " "), words );
 
                 /* check if package has been completed */
                 if( completed != 2 )

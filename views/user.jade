@@ -1,4 +1,4 @@
-//- (c)2015 by Gerald Wodni
+//- (c)2015-2017 by Gerald Wodni
 
 extends layout
 
@@ -6,6 +6,9 @@ block content
     .container
         .row
             .col-md-8
+                if user.details
+                    div.details
+                        != marked( user.details )
                 h2
                     | Packages by 
                     = user.name
@@ -13,6 +16,10 @@ block content
                     a.btn.btn-primary(href="/profile/upload")
                         i.fa.fa-plus
                         |  Upload package
+                    |  
+                    a.btn.btn-primary(href="/profile/edit")
+                        i.fa.fa-user
+                        |  Edit profile
                     |  
                     a.btn.btn-default(href="/profile/change-password")
                         i.fa.fa-key

@@ -1,0 +1,14 @@
+//- (c)2017 by Gerald Wodni
+
+extends layout
+
+block content
+    .container
+        h1 Edit profile
+
+        +messages(messages)
+
+        form(method='post',role='form')
+            +textarea-field("details", "Details - Tell something about you, link your profile (uses Markdown)", user.details)
+            button.btn.btn-primary(type='submit',name='change',value='yes')=__("Change")
+            p
