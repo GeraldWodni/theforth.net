@@ -86,7 +86,7 @@ module.exports = {
         }
 
         /* handle file upload */
-        k.router.post("/upload", upload.single("file"), function( req, res ) {
+        k.router.post("/", upload.single("file"), function( req, res ) {
             /* turn buffer into stream */
             var inputStream = new stream.PassThrough();
             var inputType = path.extname( req.file.originalname ).toLowerCase() === ".zip" ? "zip" : "tar.gz";
@@ -588,7 +588,7 @@ module.exports = {
             });
         });
 
-        k.router.get("/upload", function( req, res ) {
+        k.router.get("/", function( req, res ) {
             k.jade.render( req, res, "addPackage", vals( req, { title: "Add package", messages: [] } ) );
         });
 

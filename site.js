@@ -62,64 +62,20 @@ module.exports = {
             });
         });
 
-        //k.router.use( k.rdb.users.loginRequired( "login" ) );
+        /* upload package */
+        k.router.use( k.users.loginRequired( "login", { path: "/profile" } ) );
+        k.useSiteModule( "/profile/upload", "theforth.net", "upload.js", { setup: { vals: vals } } );
         k.useSiteModule( "/package", "theforth.net", "packet.js", { setup: { vals: vals } } );
 
-        function renderUser( userLink, req, res, next ) {
-            /* user */
-            console.log( "RENDER", userLink );
-            kData.users.readWhere( "name", [ userLink ], function( err, users ) {
-                if( err ) return next( err );
-                if( users.length == 0 ) return httpStatus( req, res, 404 );
-
-                /* user's packages */
-                var user = users[0];
-                kData.packages.readWhere( "user", [ user.id ], function( err, packages ) {
-                    if( err ) return next( err );
-
-                    user.emailMd5 = md5( user.email );
-                    k.jade.render( req, res, "user", vals( req, { user: user, packages: packages, manage: req.session && user.name==req.session.loggedInUsername, title: user.name } ) );
-                });
-            });
-        }
+        /* profile */
+        k.useSiteModule( "/profile", "theforth.net", "profile.js", { setup: { vals: vals }, register: "profile" } );
+        var renderUser = k.reg("profile").renderUser;
 
         k.router.use( "/~:link", function( req, res, next ) {
             k.requestman( req );
             var userLink = req.requestman.id( "link" );
 
             renderUser( userLink, req, res, next );
-        });
-
-
-        k.router.use( k.users.loginRequired( "login", { path: "/profile" } ) );
-        k.useSiteModule( "/profile", "theforth.net", "upload.js", { setup: { vals: vals } } );
-        /* upload package */
-        k.router.post("/profile/add-package", function( req, res ) {
-            k.postman( req, res, function() {
-                console.log( "UPLOAD:", req.postman.raw("set") );
-                k.jade.render( req, res, "addPackage", vals( req, { title: "Upload package" } ) );
-            });
-        });
-        k.router.get("/profile/add-package", function( req, res ) {
-            k.jade.render( req, res, "addPackage", vals( req, { title: "Upload package" } ) );
-        });
-
-        /* change password */
-        k.router.post("/profile/change-password", function( req, res, next ) {
-            k.users.changePassword( req, res, function( err ) {
-                if( err )
-                    k.jade.render( req, res, "changePassword", vals( req, { title: "Change Password", error: err.message } ) );
-                else
-                    k.jade.render( req, res, "changePassword", vals( req, { title: "Change Password", success: "Password changed" } ) );
-            });
-        });
-        k.router.get("/profile/change-password", function( req, res ) {
-            k.jade.render( req, res, "changePassword", vals( req, { title: "Change Password" } ) );
-        });
-
-        k.router.get("/profile", function( req, res, next ) {
-            renderUser( req.session.loggedInUsername, req, res, next );
-            //res.send( req.session.loggedInUsername );
         });
 
         /*
@@ -196,10 +152,7 @@ module.exports = {
 
                 users.forEach( function( user ) {
                     user.emailMd5 = md5( user.email );
-                    //user.link = k.filters.id( user.name.replace( /\s+/g, "_" ) );
                 });
-
-                //users = users.slice( 25, 35 );
 
                 k.jade.render( req, res, "users", vals( req, { users: users, title: "Users" }) );
             });
