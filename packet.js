@@ -87,7 +87,7 @@ module.exports = {
                 function _readUser( done ) {
                     kData.users.read( values.packet.user, function( err, user ) {
                         if( err ) return done( err );
-                        user.emailMd5 = md5( user.email );
+                        user.emailMd5 = md5( user.email.toLowerCase() );
                         values.user = user;
                         done();
                     });

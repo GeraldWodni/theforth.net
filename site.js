@@ -138,7 +138,7 @@ module.exports = {
                     return next( err );
 
                 users.forEach( function( user ) {
-                    user.emailMd5 = md5( user.email );
+                    user.emailMd5 = md5( user.email.toLowerCase() );
                 });
 
                 k.jade.render( req, res, "users", vals( req, { users: users, title: "Users" }) );
@@ -151,7 +151,7 @@ module.exports = {
                     return next( err );
 
                 users.forEach( function( user ) {
-                    user.emailMd5 = md5( user.email );
+                    user.emailMd5 = md5( user.email.toLowerCase() );
                 });
 
                 k.jade.render( req, res, "users", vals( req, { users: users, title: "Users" }) );

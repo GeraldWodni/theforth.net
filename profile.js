@@ -24,7 +24,7 @@ module.exports = {
 
                 /* user's packages */
                 var user = users[0];
-                user.emailMd5 = md5( user.email );
+                user.emailMd5 = md5( user.email.toLowerCase() );
 
                 kData.packages.readWhere( "user", [ user.id ], function( err, packages ) {
                     if( err ) return next( err );
