@@ -22,9 +22,9 @@ module.exports = {
     setup: function( k ) {
 
         /* keys required in every package.4th-file */
-        var requiredKeys = [ "name", "version", "license" ];
+        var requiredKeys = [ "name", "version", "license", "main" ];
         /* keys optional for package.4th-files */
-        var optionalKeys = [ "main", "description" ];
+        var optionalKeys = [ "description" ];
         /* list optional for package.4th-files */
         var optionalLists = [ "tags", "dependencies" ];
 
@@ -439,10 +439,10 @@ module.exports = {
                     });
 
                     /* count number of slashes in string */
-                    var dirDepth = (entry.dirname.match(/\//g) || []).length + 1;
+                    entry.dirDepth = (entry.dirname.match(/\//g) || []).length + 1;
 
                     /* handle package.4th */
-                    if( entry.basename == "package.4th" && dirDepth == 1 ) {
+                    if( entry.basename == "package.4th" && entry.dirDepth == 1 ) {
                         if( packetFile != null )
                             messages.push( { type: "danger", title: "multiple package.4th files:", text: "make sure you have only one root directory which contains package.4th" } );
                         else {
@@ -582,6 +582,11 @@ module.exports = {
                 /* validate version format */
                 if( keyValues.version && ! validVersion( keyValues.version ) )
                     messages.push( { type: "danger", title: "version format invalid", text: "use 3 decimal numbers ranging from 0-999 separated by dots i.e. >0.1.2<" });
+
+                /* check main file exists */
+                var mainFileName = path.join( keyValues.name || "invalid dir", keyValues.main || "invalid main file" );
+                if( keyValues.main && ( !_.has( packet.files, mainFileName ) || packet.files[ mainFileName ].dirDepth != "1" ) )
+                    messages.push( { type: "danger", title: "main file not found", text: "main file needs to reside in root directory" });
 
                 /* all done, we have a valid package.4th */
                 save( keyValues, keyLists );

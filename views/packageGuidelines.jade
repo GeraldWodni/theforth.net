@@ -52,13 +52,19 @@ ul
         |  name of the license you publish the system with, i.e. "GPL", "GPLv3", "MIT", ...
         br
         | use "CUSTOM" and provide a LICENSE file if you have a custom license.
+    li
+        code main
+        |  the main file to include
+        .badge.alert-danger
+            +fa("warning")
+            |  Now mandatory
 
 h4 Optional keys
 ul
     li
         code description
         |  a brief summary of what your package does
-    li
+    li.strikethrough
         code main
         |  the main file to include, otherwise "index.4th" will be assumed
 
@@ -79,6 +85,7 @@ pre
     |     key-value version 0.1.0
     |     key-value description A brief summary of what your package does
     |     key-value license GPL
+    |     key-value main my-package.4th
     |     key-list tags GPL
     |     key-list tags Some-other-tag
     |     key-list dependencies stringstack 1.0.3
