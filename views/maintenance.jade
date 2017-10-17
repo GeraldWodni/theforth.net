@@ -1,0 +1,60 @@
+//- (c)2017 by Gerald Wodni
+
+extends layout
+
+block content
+    .container
+        .alert.alert-danger
+            h1
+                +fa("wrench")
+                |  503 - Maintenance
+            p
+                b Reduced functionality
+            p Please stand by while we are upgrading the server software
+
+    .container
+        .row
+            .col-md-6
+                h1
+                    img(src="/images/logo.png",style="width:64px;height:auto")
+                    |  the Forth Net
+                h4
+                    | Package manager and repository for Forth
+
+    .container.standard
+        h1 Forth
+        p
+            | An awesome stack based programming language, which is able to extend itself during runtime.
+        p
+            a(href="http://forth-standard.org")
+                | Read more about the language
+
+    .container.communities
+        h1 Contribute
+        p
+            | Share your wonderful piece of Forth with the world. Once you have an 
+            a(href="/profile") account
+            |  you can upload your package.
+        p
+            | If you wonder how it works, check out the 
+            a(href="/guidelines") guidelines
+            | .
+
+
+    .container.communities
+        h1 Communities
+        .row
+            .col-sm-6.col-md-4
+                +elink( "http://forth-ev.de", "Forth e.V." )
+                p
+                    | Germany's leading Forth community, with members from Austria, Netherlands and USA.
+            .col-sm-6.col-md-4
+                +elink( "http://www.forth.org", "Forth Interest Group" )
+                p
+                    | Located in Silicon Valley, the first big Forth community 
+
+    .container.communities
+        h1 Idea
+        p To read about the idea behind this website visit the 
+            a(href="/about") about 
+            | section

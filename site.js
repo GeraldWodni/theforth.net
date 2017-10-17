@@ -10,6 +10,14 @@ var path    = require( "path" );
 module.exports = {
     setup: function( k ) {
 
+        if( false ) {
+            k.router.get("*", function( req, res )  {
+                res.status( 503 );
+                k.jade.render( req, res, "maintenance", vals( req ) );
+            });
+            return;
+        }
+
         /* add common values for rendering */
         function vals( req, values ) {
             if( !values )
