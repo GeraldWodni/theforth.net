@@ -129,15 +129,20 @@ module.exports = {
                     /* check if name is already taken */
                     function _UploadSqlCheckName( done ) {
                         console.log("Upload".yellow, "checking sql-name");
-                        db.query("LOCK TABLES `packages` WRITE, `packageDependencies` WRITE, `tagNames` WRITE, `packageTags` WRITE; SELECT EXISTS(SELECT 1 FROM `packages` WHERE `name`=? AND `user`<>?) AS `exists`",
-                            [ keyValues.name, req.user.id ], function( err, rows ) {
-
+                        db.query("SELECT GET_LOCK('uploadPackage', 10) AS `gotLock`", function( err, rows ) {
                             if( err )
-                                done( err );
-                            else if( rows[1][0].exists )
-                                done( new Error( "Package name already in use by another user" ) );
-                            else
-                                done();
+                                return done( err );
+                            if( rows[0].gotLock != 1 )
+                                return done( new Error( "Cannot obtain upload-lock, please try again soon" ) );
+
+                            db.query( "SELECT EXISTS(SELECT 1 FROM `packages` WHERE `name`=? AND `user`<>?) AS `exists`", [keyValues.name, req.user.id ], function( err, rows ) {
+                                if( err )
+                                    done( err );
+                                else if( rows[0].exists )
+                                    done( new Error( "Package name already in use by another user" ) );
+                                else
+                                    done();
+                            });
                         });
                     },
                     /* check dependencies */
@@ -335,6 +340,7 @@ module.exports = {
                     function _UploadSelectPackage( done ) {
                         console.log("Upload".yellow, "getting description");
                         db.query( "SELECT `description` FROM `packages` WHERE `name`=?", [ keyValues.name ], function( err, data ) {
+                            console.log("Upload".yellow, "getting description (INSIDE)", keyValues.name, err);
                             if( err ) return done( err );
                             if( !_.has( updatePacket, 'description' ) )
                                 if( data.length > 0 )
@@ -344,6 +350,7 @@ module.exports = {
 
                             done();
                         });
+                        console.log("Upload".yellow, "getting description (AFTER)");
                     },
                     /* insert/update sql-package */
                     function _UploadSql( done ) {
@@ -380,7 +387,7 @@ module.exports = {
                 ], function( err ) {
                     console.log("Upload".yellow, "Series Done".bold.green);
                     /* unlock tables under any circumstances */
-                    db.query( "UNLOCK TABLES" );
+                    db.query( "SELECT RELEASE_LOCK( 'uploadPackage' )" );
                     if( err )
                         messages.push( { type: "danger", "title": "Save error", text: err.message } );
                     /* if all went well, background commit and push git */

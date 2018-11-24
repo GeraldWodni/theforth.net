@@ -1,100 +1,47 @@
 // Git interface for pushing packages to github
-// (c)copyright 2016 by Gerald Wodni <gerald.wodni@gmail.com>
+// (c)copyright 2016, 2018 by Gerald Wodni <gerald.wodni@gmail.com>
 
-var path      = require("path");
-var Git       = require("nodegit");
+const path      = require("path");
+const simpleGit = require("simple-git");
 
 /* package subrepo status */
 function repoStatus( dir, callback ) {
-    Git.Repository.open(dir)
-        .then(function(repo){
-            repo.getStatus().then(function(stati){
-                callback( null, stati, repo );
-            });
-        }).
-        catch(function(err){
-            callback( err );
-        });
-}
-
-/* from: https://github.com/nodegit/nodegit/blob/master/examples/status.js */
-function statusToText(status) {
-    var words = [];
-    if (status.isNew()          ) { words.push("NEW"); }
-    if (status.isModified()     ) { words.push("MODIFIED"); }
-    if (status.isTypechange()   ) { words.push("TYPECHANGE"); }
-    if (status.isRenamed()      ) { words.push("RENAMED"); }
-    if (status.isIgnored()      ) { words.push("IGNORED"); }
-
-    return words.join(" ");
+    const git = simpleGit( dir );
+    git.status( callback );
 }
 
 function getStatus( dir, callback ) {
-    repoStatus( dir, function( err, stati ) {
-        if( err ) return callback( err )
+    repoStatus( dir, ( err, stati ) => {
+        if( err ) return callback( err );
 
         var files = [];
-        stati.forEach(function(file){
-            files.push( { path: file.path(), status: statusToText( file ) } );
-        });
+        function addStatiFiles( statiFiles, text ) {
+            statiFiles.forEach( file => files.push({
+                path: file,
+                status: text
+            }) );
+        }
+
+        addStatiFiles( stati.not_added,     "NOT ADDED" );
+        addStatiFiles( stati.conflicted,    "CONFLICT"  );
+        addStatiFiles( stati.created,       "CREATED"   );
+        addStatiFiles( stati.deleted,       "DELETED"   );
+        addStatiFiles( stati.modified,      "MODIFIED"  );
+        addStatiFiles( stati.renamed,       "RENAMED"   );
+        addStatiFiles( stati.staged,        "STAGED"    );
 
         callback( null, files );
     });
 }
 
 function addCommitPush( sshDir, dir, commitMessage, callback ) {
-    repoStatus( dir, function( err, stati, repo ) {
-        if( err ) return callback( err )
 
-        var index, oid, remote;
-
-        /* add files */
-        repo.index().then(function(i){
-            index = i;
-            stati.forEach(function(file){
-                console.log( "Adding".bold.green, file.path() );
-                index.addByPath( file.path() );
-            });
-            return index.writeTree();
-        })
-        /* commit */
-        .then(function(o){
-            oid = o;
-            return Git.Reference.nameToId( repo, "HEAD" );
-        })
-        .then(function(head){
-            return repo.getCommit(head);
-        })
-        .then(function(parent){
-            var sig = repo.defaultSignature();
-            return repo.createCommit( "HEAD", sig, sig, commitMessage, oid, [ parent ] );
-        })
-        /* push to remote */
-        .then(function(){
-            return repo.getRemote("origin");
-        }) .then(function(r){
-            remote = r;
-            remote.setCallbacks( {
-                credentials: function( url, userName ) {
-                    console.log( "credentials: ", url, userName );
-                    return Git.Cred.sshKeyNew( 'git', path.join( sshDir, 'id_rsa.pub' ), path.join( sshDir, 'id_rsa' ), '' );
-                }
-            });
-            return remote.connect( Git.Enums.DIRECTION.PUSH );
-        }).then(function( number ) {
-            return remote.push(
-                ["refs/heads/master:refs/heads/master"],
-                null,
-                repo.defaultSignature(),
-                "Push to master test"
-            );
-        })
-        .catch(function(err){ callback( err ) })
-        .done(function(s){
-            callback( null, s );
-        });
-    });
-    
+    const GIT_SSH_COMMAND = `ssh -i ${sshDir}.id_rsa`;
+    const git = simpleGit( dir );
+        git.env("GIT_SSH_COMMAND", GIT_SSH_COMMAND)
+        .add("./*")
+        .commit( commitMessage )
+        .push( 'origin', 'master', callback );
 }
 
 module.exports = {
