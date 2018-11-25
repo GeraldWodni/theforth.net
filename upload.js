@@ -340,7 +340,6 @@ module.exports = {
                     function _UploadSelectPackage( done ) {
                         console.log("Upload".yellow, "getting description");
                         db.query( "SELECT `description` FROM `packages` WHERE `name`=?", [ keyValues.name ], function( err, data ) {
-                            console.log("Upload".yellow, "getting description (INSIDE)", keyValues.name, err);
                             if( err ) return done( err );
                             if( !_.has( updatePacket, 'description' ) )
                                 if( data.length > 0 )
@@ -350,7 +349,6 @@ module.exports = {
 
                             done();
                         });
-                        console.log("Upload".yellow, "getting description (AFTER)");
                     },
                     /* insert/update sql-package */
                     function _UploadSql( done ) {
