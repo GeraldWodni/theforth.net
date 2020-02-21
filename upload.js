@@ -13,7 +13,7 @@ var path    = require('path');
 var stream  = require('stream');
 var targz   = require('tar.gz');
 var util    = require('util');
-var unzip   = require('unzip');
+var unzip   = require('unzipper');
 var git     = require('./git');
 
 var forthParser = require("./forthParser");
@@ -421,8 +421,11 @@ module.exports = {
             }
 
             parse.on( "entry", function( entry ) {
-                if( entry.type === "Directory" )
+                if( entry.type === "Directory" ) {
                     packet.directories.push( entry.path );
+                    if( typeof entry.autodrain === "function" )
+                        entry.autodrain();
+                }
                 else if( entry.type === "File" ) {
                     packet.files[ entry.path ] = entry;
                     entry.basename = path.basename( entry.path );
