@@ -7,7 +7,7 @@ var _       = require('underscore');
 var async   = require('async');
 var JSZip   = require('jszip');
 var fs      = require('fs');
-var marked  = require('marked');
+var { marked } = require('marked');
 var md5     = require('md5');
 var path    = require('path');
 
