@@ -40,3 +40,6 @@ package
 
 # ignore ssh keys, they can be regenerated and added to github
 ssh
+
+# ignore user data
+private
