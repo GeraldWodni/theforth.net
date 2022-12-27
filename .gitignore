@@ -32,7 +32,6 @@ bower_components
 /css/*.css
 
 # hide real config parameters
-config.json
 users.json
 
 # ignore packages, they are a separate repository
