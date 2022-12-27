@@ -31,9 +31,6 @@ bower_components
 # no less-based css
 /css/*.css
 
-# hide real config parameters
-users.json
-
 # ignore packages, they are a separate repository
 package
 
