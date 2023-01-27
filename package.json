@@ -13,7 +13,7 @@
   },
   "homepage": "https://theforth.net",
   "dependencies": {
-    "simple-git": "^1.107.0",
+    "simple-git": "^3.16.0",
     "unzipper": "^0.10.9"
   }
 }
